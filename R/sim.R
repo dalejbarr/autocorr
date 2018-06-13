@@ -2,9 +2,6 @@
 
 #' Simulate autocorrelated residual error based on source function
 #'
-#' Simulate an time series of autocorrelated residual error based on a
-#' source autocorrelation function.
-#' 
 #' @param source_acf Source autocorrelation function to use.
 #' @param length.out Length of the output time series.
 #' @param sigma Desired standard deviation of output time series.

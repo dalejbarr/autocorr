@@ -49,6 +49,7 @@ run_2x2 <- function(n_subj, n_obs, fixed, jsess, amx, amx_wt = NULL) {
 
   parms <- funfact::gen_pop(my_design, n_subj)
   parms$fixed[] <- fixed
+  parms$item_rfx[,] <- 0
   parms$err_var <- 6
 
   dat <- sim_2x2(n_subj, n_obs, parms, amx) %>%
