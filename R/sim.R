@@ -1,6 +1,6 @@
-#' @importFrom magrittr "%>%"
+#' @importFrom magrittr %>%
 
-#' Simulate autocorrelated residual error based on source function
+#' @title Simulate autocorrelated residual error based on source function
 #'
 #' @param source_acf Source autocorrelation function to use.
 #' @param length.out Length of the output time series.
@@ -21,7 +21,7 @@ sim_acerr <- function(source_acf, length.out = 48L, sd = 1,
     res
 }
 
-#' Simulate data with autocorrelated errors
+#' @title Simulate data with autocorrelated errors
 #'
 #' @param n_subj Number of subjects to simulate.
 #' @param n_obs Number of observations per subject.

@@ -31,9 +31,6 @@ A data frame, with \code{ts_r} as the trial number ordered
   response variable with autocorrelation; and \code{Y_acb} as the
   response variable with autocorrelation for the blocked data.
 }
-\description{
-Simulate data with autocorrelated errors
-}
 \details{
 Simulates data from a 2x2 mixed design, with factor A
   within subjects and factor B between subjects.
