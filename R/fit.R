@@ -8,6 +8,7 @@
 #' @param jsess Julia session (established by \code{JuliaCall::julia_setup()}).
 #' @param name Name of the Julia object to create.
 #' @return A Julia fitted model object.
+#' @export
 fit_jl <- function(formula, data, jsess, name = "fm1") {
   jsess$assign("form", formula)
   jsess$assign("dat", data)
@@ -37,6 +38,7 @@ fit_jl <- function(formula, data, jsess, name = "fm1") {
 #' @return A two dimensional array with fixed effects estimates and
 #'   standard errors.
 #' @seealso \code{\link{sim_2x2}}, \code{\link{fit_jl}}
+#' @importFrom magrittr %>%
 #' @export
 run_2x2 <- function(n_subj, n_obs, fixed, jsess, amx, amx_wt = NULL) {
   ## n_subj <- 48L; n_obs <- 48L; fixed <- rep(0, 4); jsess <- j

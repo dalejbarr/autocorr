@@ -1,5 +1,3 @@
-#' @importFrom magrittr %>%
-
 #' @title Simulate autocorrelated residual error based on source function
 #'
 #' @param source_acf Source autocorrelation function to use.
@@ -7,7 +5,6 @@
 #' @param sigma Desired standard deviation of output time series.
 #' @param center Mean center the time series.
 #' @return A vector of residuals modeled after \code{source_acf}.
-#'
 #' @export
 sim_acerr <- function(source_acf, length.out = 48L, sd = 1, 
                       center = TRUE) {
@@ -42,6 +39,7 @@ sim_acerr <- function(source_acf, length.out = 48L, sd = 1,
 #'   response variable without autocorrelation; \code{Y_acr} as the
 #'   response variable with autocorrelation; and \code{Y_acb} as the
 #'   response variable with autocorrelation for the blocked data.
+#' @importFrom magrittr %>%
 #' @export
 sim_2x2 <- function(n_subj, n_obs, params,
                     amx, amx_wt = NULL) {
@@ -81,4 +79,3 @@ sim_2x2 <- function(n_subj, n_obs, params,
     dplyr::select(subj_id, item_id, ts_r, ts_b, A, B,
                   Y_fit, Y_acn, Y_acr, Y_acb)
 }
-
