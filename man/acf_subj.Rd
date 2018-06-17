@@ -2,11 +2,14 @@
 % Please edit documentation in R/estimate.R
 \name{acf_subj}
 \alias{acf_subj}
+\alias{acf_subj_mx}
 \title{Estimate by-subject acfs
 
 Estimate autocorrelation functions for each subject in a dataset.}
 \usage{
 acf_subj(data, subject, residuals, lag.max = NULL)
+
+acf_subj_mx(data, subject, residuals, lag.max = NULL)
 }
 \arguments{
 \item{subject}{Unquoted variable name in \code{data} identifying
@@ -25,6 +28,11 @@ will be identified, and this will be used for \code{lag.max}.}
 \value{
 A table with the autocorrelation function for each subject.
 }
+\section{Functions}{
+\itemize{
+\item \code{acf_subj_mx}: Convenience function that returns a matrix
+}}
+
 \seealso{
 \code{\link{acf}}
 }

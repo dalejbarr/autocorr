@@ -33,20 +33,35 @@ acf_subj <- function(data, subject, residuals, lag.max = NULL) {
     tidyr::nest(.key = "res")
   acf_df <- dnest %>%
     dplyr::mutate(acf = purrr::map(res, acf_tbl, resid, lag.max)) %>%
-    dplyr::select(subject, acf) %>%
+    dplyr::select(!!subj, acf) %>%
     tidyr::unnest()
   if (is.null(lag.max)) {
     max_lag <- acf_df %>%
-      dplyr::group_by(subject) %>%
+      dplyr::group_by(!!subj) %>%
       dplyr::summarize(max_lag = max(lag)) %>%
       dplyr::pull(max_lag) %>% max()
     message("setting lag.max to ", max_lag)
     acf_df <- dnest %>%
       dplyr::mutate(acf = purrr::map(res, acf_tbl, resid, max_lag)) %>%
-      dplyr::select(subject, acf) %>%
+      dplyr::select(!!subj, acf) %>%
       tidyr::unnest()
   }
   acf_df
+}
+
+#' @describeIn acf_subj Convenience function that returns a matrix
+#' @importFrom magrittr "%>%"
+#' @importFrom rlang "!!"
+#' @export
+acf_subj_mx <- function(data, subject, residuals, lag.max = NULL) {
+  subj <- rlang::enquo(subject)
+  resid <- rlang::enquo(residuals)
+  res <- acf_subj(data, !!subj, !!resid, lag.max)
+  stopifnot(length(max_lag <- res %>%
+                     dplyr::group_by(!!subj) %>%
+                     dplyr::count() %>%
+                     dplyr::pull() %>% unique()) == 1L)
+  matrix(c(dplyr::pull(res, r)), ncol = max_lag, byrow = TRUE)
 }
 
 #' @title Confidence interval for autocorrelation function
@@ -102,3 +117,4 @@ dw_subj <- function(data, subject, residual) {
     dplyr::summarize(dw = dw_calc(!!resid)) %>%
     dplyr::ungroup()
 }
+
