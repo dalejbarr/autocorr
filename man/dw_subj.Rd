@@ -2,9 +2,7 @@
 % Please edit documentation in R/estimate.R
 \name{dw_subj}
 \alias{dw_subj}
-\title{Durbin-Watson statistic by subject
-
-Calculates the Durbin-Watson statistic by subject.}
+\title{Durbin-Watson statistic by subject}
 \usage{
 dw_subj(data, subject, residual)
 }
@@ -16,4 +14,7 @@ individual subjects.}
 
 \item{residuals}{Unquoted variable name in \code{data} of
 residuals.}
+}
+\description{
+Calculates the Durbin-Watson statistic by subject.
 }

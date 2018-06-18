@@ -1,6 +1,6 @@
 ## functions in this file estimate autocorrelation functions
 
-#' @title Estimate by-subject acfs
+#' Estimate by-subject acfs
 #'
 #' Estimate autocorrelation functions for each subject in a dataset.
 #'
@@ -64,7 +64,7 @@ acf_subj_mx <- function(data, subject, residuals, lag.max = NULL) {
   matrix(c(dplyr::pull(res, r)), ncol = max_lag, byrow = TRUE)
 }
 
-#' @title Confidence interval for autocorrelation function
+#' Confidence interval for autocorrelation function
 #'
 #' Calculate a permutation-based confidence interval for the
 #' by-subject autocorrelation function
@@ -94,7 +94,7 @@ acf_ci <- function(data, subject, residuals, lag.max = NULL, alpha = .05) {
 		     upper = quantile(r, probs = 1 - (alpha / 2)))
 }
 
-#' @title Durbin-Watson statistic by subject
+#' Durbin-Watson statistic by subject
 #'
 #' Calculates the Durbin-Watson statistic by subject.
 #'

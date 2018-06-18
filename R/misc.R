@@ -1,6 +1,6 @@
 ## miscellaneous functions
 
-#' @title Permute residuals
+#' Permute residuals
 #'
 #' Independently permute the residuals for each subject in the data set.
 #'
@@ -22,3 +22,5 @@ permute_resids <- function(data, subject, residuals) {
     dplyr::mutate(!!r2 := sample(!!resid)) %>%
     dplyr::ungroup()
 }
+
+

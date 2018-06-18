@@ -2,9 +2,7 @@
 % Please edit documentation in R/misc.R
 \name{permute_resids}
 \alias{permute_resids}
-\title{Permute residuals
-
-Independently permute the residuals for each subject in the data set.}
+\title{Permute residuals}
 \usage{
 permute_resids(data, subject, residuals)
 }
@@ -18,4 +16,7 @@ subjects.}
 }
 \value{
 A table with the \code{residuals} column permuted for each subject.
+}
+\description{
+Independently permute the residuals for each subject in the data set.
 }

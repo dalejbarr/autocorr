@@ -2,10 +2,7 @@
 % Please edit documentation in R/estimate.R
 \name{acf_ci}
 \alias{acf_ci}
-\title{Confidence interval for autocorrelation function
-
-Calculate a permutation-based confidence interval for the
-by-subject autocorrelation function}
+\title{Confidence interval for autocorrelation function}
 \usage{
 acf_ci(data, subject, residuals, lag.max = NULL, alpha = 0.05)
 }
@@ -23,6 +20,10 @@ subjects.}
 }
 \value{
 Table with (1-alpha)% confidence interval for the autocorrelation function at each time lag.
+}
+\description{
+Calculate a permutation-based confidence interval for the
+by-subject autocorrelation function
 }
 \details{
 Permutes the residuals for each participant before calculating the confidence interval for the correlation at each time lag.

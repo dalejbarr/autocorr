@@ -13,5 +13,6 @@ Imports: funfact,
     purrr,
     tibble,
     rlang,
-    tidyr
+    tidyr,
+    ggplot2
 RoxygenNote: 6.0.1
