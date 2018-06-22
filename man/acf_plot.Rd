@@ -4,7 +4,7 @@
 \alias{acf_plot}
 \title{Plot autocorrelation function}
 \usage{
-acf_plot(data, subject, residuals, lag.max = NULL)
+acf_plot(data, subject, residuals, lag.max = NULL, log_log = FALSE)
 }
 \arguments{
 \item{subject}{Unquoted variable name in \code{data} identifying
@@ -19,6 +19,8 @@ length of each subject's autocorrelation function is given by
 10*log(N, 10), where N is the number of observations in the
 series.  In the second pass, the length of the longest series
 will be identified, and this will be used for \code{lag.max}.}
+
+\item{log_log}{Whether to produce a log-log plot.}
 }
 \description{
 Estimate and plot the autocorrelation function.
