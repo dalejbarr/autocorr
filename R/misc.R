@@ -23,4 +23,23 @@ permute_resids <- function(data, subject, residuals) {
     dplyr::ungroup()
 }
 
-
+#' Convert residuals to ragged array (list)
+#'
+#' Convert a column of residuals in a data frame into a list.
+#'
+#' @param data The dataset.
+#' @param subject Unquoted name of the variable identifying individual
+#'   subjects.
+#' @param residuals Unquoted variable name for residuals.
+#' @return A list where each element is the vector of residuals for a subject.
+#' @export 
+resids_to_rarray <- function(data, subject, residuals) {
+  subj <- rlang::enquo(subject)
+  resid <- rlang::enquo(residuals)
+  data %>%
+    dplyr::select(!!subj, !!resid) %>%
+    dplyr::group_by(!!subj) %>%
+    tidyr::nest(.key = "dat") %>%
+    dplyr::pull(dat) %>%
+    purrr::map(dplyr::pull)
+}

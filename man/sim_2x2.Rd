@@ -4,7 +4,7 @@
 \alias{sim_2x2}
 \title{Simulate data with autocorrelated errors}
 \usage{
-sim_2x2(n_subj, n_obs, params, amx, amx_wt = NULL)
+sim_2x2(n_subj, n_obs, params, is_acf, amx, amx_wt = NULL)
 }
 \arguments{
 \item{n_subj}{Number of subjects to simulate.}
@@ -15,12 +15,12 @@ sim_2x2(n_subj, n_obs, params, amx, amx_wt = NULL)
 process; the structure should be identical to that returned by
 \code{\link{funfact::gen_pop}}.}
 
-\item{amx}{Matrix of autocorrelation functions to sample from,
-which each row a separate function.}
+\item{is_acf}{Is argument \code{amr} a list of residuals (TRUE) or a matrix
+of autocorrelation functions (FALSE)?}
 
-\item{amx_wt}{Sampling weights for autocorrelation matrix
-(representing the probability of being sampled); \code{NULL}
-gives each row an equal probability.}
+\item{amx}{List of residuals or matrix of autocorrelation functions, with each element or row representing a different subject.}
+
+\item{amx_wt}{Weights for sampling elements/rows from \code{amx}; NULL gives equal probability.}
 }
 \value{
 A data frame, with \code{ts_r} as the trial number ordered

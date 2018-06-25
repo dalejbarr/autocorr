@@ -4,7 +4,7 @@
 \alias{gamm_2x2}
 \title{Simulate and Fit GAMM}
 \usage{
-gamm_2x2(n_subj, n_obs, fixed, amx, amx_wt = NULL)
+gamm_2x2(n_subj, n_obs, fixed, is_acf, amr, amr_wt = NULL)
 }
 \arguments{
 \item{n_subj}{Number of subjects.}
@@ -15,10 +15,13 @@ gamm_2x2(n_subj, n_obs, fixed, amx, amx_wt = NULL)
 Intercept, main effect of A, main effect of B, and AB
 interaction.}
 
-\item{amx}{Matrix of autocorrelation functions.}
+\item{is_acf}{Is argument \code{amr} a list of residuals (TRUE) or a matrix
+of autocorrelation functions (FALSE)?}
 
-\item{amx_wt}{Weights for sampling rows from \code{amx}.}
+\item{amr}{List of residuals or matrix of autocorrelation functions, with each element or row representing a different subject.}
+
+\item{amr_wt}{Weights for sampling rows from \code{amx}.}
 }
 \description{
-Simulate 2x2 data and fit GAMM models.
+Simulate 2x2 data and fit GAMM/non-GAMM models
 }

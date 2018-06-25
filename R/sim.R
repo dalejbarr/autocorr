@@ -25,11 +25,10 @@ sim_acerr <- function(source_acf, length.out = 48L, sd = 1,
 #' @param params Population parameter values for the data generating
 #'   process; the structure should be identical to that returned by
 #'   \code{\link{funfact::gen_pop}}.
-#' @param amx Matrix of autocorrelation functions to sample from,
-#'   which each row a separate function.
-#' @param amx_wt Sampling weights for autocorrelation matrix
-#'   (representing the probability of being sampled); \code{NULL}
-#'   gives each row an equal probability.
+#' @param is_acf Is argument \code{amr} a list of residuals (TRUE) or a matrix
+#'   of autocorrelation functions (FALSE)?
+#' @param amx List of residuals or matrix of autocorrelation functions, with each element or row representing a different subject.
+#' @param amx_wt Weights for sampling elements/rows from \code{amx}; NULL gives equal probability.
 #' @details Simulates data from a 2x2 mixed design, with factor A
 #'   within subjects and factor B between subjects.
 #' @return A data frame, with \code{ts_r} as the trial number ordered
@@ -41,7 +40,7 @@ sim_acerr <- function(source_acf, length.out = 48L, sd = 1,
 #'   response variable with autocorrelation for the blocked data.
 #' @importFrom magrittr %>%
 #' @export
-sim_2x2 <- function(n_subj, n_obs, params,
+sim_2x2 <- function(n_subj, n_obs, params, is_acf,
                     amx, amx_wt = NULL) {
   design_args <- list(ivs = c(A = 2, B = 2),
                       n_item = n_obs * 2L,
@@ -53,9 +52,25 @@ sim_2x2 <- function(n_subj, n_obs, params,
   n_per <- dat %>% dplyr::count(subj_id) %>% dplyr::pull(n) %>% unique()
   stopifnot(length(n_per) == 1L)
 
-  acerr_all <- purrr::map(sample(seq_len(nrow(amx)), n_subj, TRUE,
-                                 prob = amx_wt),
-                          ~ sim_acerr(amx[.x, ], n_per, params$err_var)) 
+  if (is_acf) {
+    if (!is.matrix(amx)) {
+      stop("is_acf was TRUE but amx was not a matrix")
+    }
+    acerr_all <- purrr::map(sample(seq_len(nrow(amx)), n_subj, TRUE,
+                                   prob = amx_wt),
+                            ~ sim_acerr(amx[.x, ], n_per, params$err_var))
+  } else {
+    if (!is.list(amx)) {
+      stop("is_acf was FALSE but amx was not a list")
+    }
+    acerr_all <- purrr::map(sample(seq_len(length(amx)), n_subj, TRUE,
+                                   prob = amx_wt),
+                            function(.x) {
+                              maxpos <- length(amx[[.x]]) - n_per + 1L
+                              t0 <- sample(seq_len(maxpos), 1L)
+                              amx[[.x]][t0:(t0 + n_per - 1L)]
+                            })    
+  }
 
   acerr_no_ac <- purrr::map(acerr_all, sample)
 
