@@ -63,13 +63,10 @@ sim_2x2 <- function(n_subj, n_obs, params, is_acf,
     if (!is.list(amx)) {
       stop("is_acf was FALSE but amx was not a list")
     }
-    acerr_all <- purrr::map(sample(seq_len(length(amx)), n_subj, TRUE,
-                                   prob = amx_wt),
-                            function(.x) {
-                              maxpos <- length(amx[[.x]]) - n_per + 1L
-                              t0 <- sample(seq_len(maxpos), 1L)
-                              amx[[.x]][t0:(t0 + n_per - 1L)]
-                            })    
+    if (any(purrr::map_int(amx, length) != n_per)) {
+      stop("elements of 'amx' must be vectors of same length as number of observations for a given subject (", n_per, ")")
+    }
+    acerr_all <- amx[sample(seq_len(length(amx)), n_subj, TRUE, prob = amx_wt)]
   }
 
   acerr_no_ac <- purrr::map(acerr_all, sample)
