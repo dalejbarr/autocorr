@@ -29,6 +29,7 @@ sim_acerr <- function(source_acf, length.out = 48L, sd = 1,
 #'   of autocorrelation functions (FALSE)?
 #' @param amx List of residuals or matrix of autocorrelation functions, with each element or row representing a different subject.
 #' @param amx_wt Weights for sampling elements/rows from \code{amx}; NULL gives equal probability.
+#' @param replace Whether to sample residual vectors with replacement.
 #' @details Simulates data from a 2x2 mixed design, with factor A
 #'   within subjects and factor B between subjects.
 #' @return A data frame, with \code{ts_r} as the trial number ordered
@@ -41,7 +42,7 @@ sim_acerr <- function(source_acf, length.out = 48L, sd = 1,
 #' @importFrom magrittr %>%
 #' @export
 sim_2x2 <- function(n_subj, n_obs, params, is_acf,
-                    amx, amx_wt = NULL) {
+                    amx, amx_wt = NULL, replace = TRUE) {
   design_args <- list(ivs = c(A = 2, B = 2),
                       n_item = n_obs * 2L,
                       between_item = c("A", "B"),
@@ -56,14 +57,14 @@ sim_2x2 <- function(n_subj, n_obs, params, is_acf,
     if (!is.matrix(amx)) {
       stop("is_acf was TRUE but amx was not a matrix")
     }
-    acerr_all <- purrr::map(sample(seq_len(nrow(amx)), n_subj, TRUE,
+    acerr_all <- purrr::map(sample(seq_len(nrow(amx)), n_subj, replace,
                                    prob = amx_wt),
                             ~ sim_acerr(amx[.x, ], n_per, params$err_var))
   } else {
     if (!is.list(amx)) {
       stop("is_acf was FALSE but amx was not a list")
     }
-    acerr_all <- purrr::map(sample(seq_len(length(amx)), n_subj, TRUE,
+    acerr_all <- purrr::map(sample(seq_len(length(amx)), n_subj, replace,
                                    prob = amx_wt),
                             function(.x) {
                               maxpos <- length(amx[[.x]]) - n_per + 1L

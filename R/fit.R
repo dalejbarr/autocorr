@@ -115,7 +115,8 @@ gamm_2x2_v2 <- function(n_subj, n_obs, fixed, amx, amx_wt = NULL) {
 
 #' @importFrom magrittr "%>%"
 #' @export
-gen_2x2 <- function(n_subj, n_obs, fixed, is_acf, amx, amx_wt = NULL) {
+gen_2x2 <- function(n_subj, n_obs, fixed, is_acf, amx, amx_wt = NULL,
+                    replace) {
   my_design <- list(ivs = c(A = 2, B = 2),
 		    n_item = n_obs * 2L,
 		    between_item = c("A", "B"),
@@ -126,7 +127,7 @@ gen_2x2 <- function(n_subj, n_obs, fixed, is_acf, amx, amx_wt = NULL) {
   parms$item_rfx[,] <- 0
   parms$err_var <- 6
 
-  sim_2x2(n_subj, n_obs, parms, is_acf, amx, amx_wt) %>%
+  sim_2x2(n_subj, n_obs, parms, is_acf, amx, amx_wt, replace) %>%
     funfact::with_dev_pred(c("A", "B"))
 }
 
