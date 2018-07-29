@@ -101,19 +101,16 @@ kkl_grafted <- function(n_subj, n_obs, fixed, is_acf, amr, amr_wt = NULL,
   ## fit the GAMM models using mgcv::bam
   mod_no <- mgcv::bam(Y_acn ~ AA2 * BB2 +
                         s(tnum_r, subj_id, bs = "fs", m = 1) + 
-                        s(subj_id, bs = "re") +
                         s(subj_id, AA2, bs = "re"),
                       data = dat)
 
   mod_rand <- mgcv::bam(Y_acr ~ AA2 * BB2 +
                           s(tnum_r, subj_id, bs = "fs", m = 1) +
-                          s(subj_id, bs = "re") +
                           s(subj_id, AA2, bs = "re"),
                         data = dat)
 
   mod_block <- mgcv::bam(Y_acb ~ AA2 * BB2 +
                            s(tnum_b, subj_id, bs = "fs", m = 1) +
-                           s(subj_id, bs = "re") +
                            s(subj_id, AA2, bs = "re"),
                          data = dat)
 
