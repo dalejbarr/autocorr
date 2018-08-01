@@ -73,24 +73,45 @@ sim_2x2_sin <- function(n_subj, n_obs, fixed, err, phase = TRUE, amp = FALSE) {
 #' Fit models to 2x2 data with sine wave errors
 #'
 #' @param dat Data generated using \link{sim_2x2_sin}.
+#' @param cs Fit gamm smooth as main effect of trial (in addition to by-subject factor smooths).
 #' @return Array with parameter estimates and standard errors.
 #' @export
-fit_2x2_sin <- function(dat) {
+fit_2x2_sin <- function(dat, cs = FALSE) {
   ## fit the GAMM models using mgcv::bam
-  mod_no <- mgcv::bam(Y_acn ~ AA2 * BB2 +
-			s(tnum_r, subj_id, bs = "fs") +
-			s(subj_id, AA2, bs = "re"),
-		      data = dat)
+  if (cs) {
+    mod_no <- mgcv::bam(Y_acn ~ AA2 * BB2 +
+                          s(tnum_r, bs = "tp") +
+                          s(tnum_r, subj_id, bs = "fs") +
+                          s(subj_id, AA2, bs = "re"),
+                        data = dat)
 
-  mod_rand <- mgcv::bam(Y_acr ~ AA2 * BB2 +
-			  s(tnum_r, subj_id, bs = "fs") +
-			  s(subj_id, AA2, bs = "re"),
-			data = dat)
+    mod_rand <- mgcv::bam(Y_acr ~ AA2 * BB2 +
+                            s(tnum_r, bs = "tp") +
+                            s(tnum_r, subj_id, bs = "fs") +
+                            s(subj_id, AA2, bs = "re"),
+                          data = dat)
 
-  mod_block <- mgcv::bam(Y_acb ~ AA2 * BB2 +
-			   s(tnum_b, subj_id, bs = "fs") +
-			   s(subj_id, AA2, bs = "re"),
-			 data = dat)
+    mod_block <- mgcv::bam(Y_acb ~ AA2 * BB2 +
+                             s(tnum_b, bs = "tp") +
+                             s(tnum_b, subj_id, bs = "fs") +
+                             s(subj_id, AA2, bs = "re"),
+                           data = dat)    
+  } else {
+    mod_no <- mgcv::bam(Y_acn ~ AA2 * BB2 +
+                          s(tnum_r, subj_id, bs = "fs") +
+                          s(subj_id, AA2, bs = "re"),
+                        data = dat)
+
+    mod_rand <- mgcv::bam(Y_acr ~ AA2 * BB2 +
+                            s(tnum_r, subj_id, bs = "fs") +
+                            s(subj_id, AA2, bs = "re"),
+                          data = dat)
+
+    mod_block <- mgcv::bam(Y_acb ~ AA2 * BB2 +
+                             s(tnum_b, subj_id, bs = "fs") +
+                             s(subj_id, AA2, bs = "re"),
+                           data = dat)
+  }
 
   ## fit the non-GAMM models using mgcv::bam
   mod_no_2 <- mgcv::bam(Y_acn ~ AA2 * BB2 +

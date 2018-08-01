@@ -4,10 +4,12 @@
 \alias{fit_2x2_sin}
 \title{Fit models to 2x2 data with sine wave errors}
 \usage{
-fit_2x2_sin(dat)
+fit_2x2_sin(dat, cs = FALSE)
 }
 \arguments{
 \item{dat}{Data generated using \link{sim_2x2_sin}.}
+
+\item{cs}{Fit gamm smooth as main effect of trial (in addition to by-subject factor smooths).}
 }
 \value{
 Array with parameter estimates and standard errors.
