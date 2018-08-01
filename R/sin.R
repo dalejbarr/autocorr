@@ -4,6 +4,8 @@
 #' @param n_obs Number of observations per subject.
 #' @param fixed Vector of population parameters for the fixed effects (intercept, main effect of A, main effect of B, AB interaction).
 #' @param err Sigma, the residual error parameter.
+#' @param phase Whether the phase of each participant's time-varying function is offset by a random angle (from -pi to pi).
+#' @param amp Whether the amplitude of each participant's time-varying function is modulated by a random value (from 0 to 2).
 #' @details Simulates data from a 2x2 mixed design, with factor A
 #'   within subjects and factor B between subjects.
 #' @return A data frame, with \code{ts_r} as the trial number ordered
@@ -15,11 +17,14 @@
 #'   response variable with autocorrelation for the blocked data.
 #' @importFrom magrittr %>%
 #' @export
-sim_2x2_sin <- function(n_subj, n_obs, fixed, err) {
+sim_2x2_sin <- function(n_subj, n_obs, fixed, err, phase = TRUE, amp = FALSE) {
   x <- seq(-pi, pi, length.out = n_obs)
-  step_begin <- runif(n_subj, -pi, pi)
-  resids <- purrr::map(step_begin,
-		       ~ rnorm(n_obs, sin(x + .x) / sd(sin(x)), err))
+
+  step_begin <- if (phase) runif(n_subj, -pi, pi) else rep(0, n_subj)
+  step_amp <- if (amp) runif(n_subj, 0, 2) else rep(1, n_subj)
+
+  resids <- purrr::map2(step_begin, step_amp,
+                        ~ rnorm(n_obs, .y * (sin(x + .x) / sd(sin(x))), err))
   resids_no_ar <- purrr::map(resids, sample) # shuffled
 
   my_design <- list(ivs = c(A = 2, B = 2),
