@@ -17,6 +17,25 @@ fit_jl <- function(formula, data, jsess, name = "fm1") {
   jsess$eval(name)
 }
 
+#' Fit logit model via Julia MixedModels package
+#'
+#' Fits a mixed-effects logistic regression model via the Julia MixedModels
+#' package.
+#' 
+#' @param mform Model formula.
+#' @param dat Data frame.
+#' @param jsess Julia session (established by \code{JuliaCall::julia_setup()}).
+#' @param name Name of the Julia object to create.
+#' @return A Julia fitted model object.
+#' @export
+fit_logit_jl <- function(formula, data, jsess, name = "fm1") {
+  jsess$assign("form", formula)
+  jsess$assign("dat", data)
+  jsess$eval(paste0(name, " = fit(GeneralizedLinearMixedModel, form, dat, Bernoulli())"))
+  jsess$eval(name)
+}
+
+
 #' Simulate and fit 2x2 autocorrelated data
 #'
 #' Simulate data from a 2x2 mixed design (A within and B between) with
@@ -111,6 +130,37 @@ gamm_2x2_v2 <- function(n_subj, n_obs, fixed, amx, amx_wt = NULL) {
         dimnames = list(coef = c("(Intercept)", "A", "B", "A:B"),
                         param = c("est", "stderr"),
                         model = c("mod_no", "mod_rand", "mod_block")))
+}
+
+#' Generate simulated nested categorical time-series data
+#'
+#' @param n_subj Number of subjects.
+#' @param n_obs Number of observations per subject (multiple of 2).
+#' @param fixed Fixed effects parameters (1st element = intercept, 2nd element = main effect).
+#' @param downsample How much to downsample from original 1000 Hz data. (1 = 1000Hz, 2 = 500Hz, 4 = 250Hz, etc.)
+#' @return Data frame with time series data.
+#' @importFrom magrittr "%>%"
+#' @export
+gen_logit_data <- function(n_subj, n_obs, fixed, downsample = 1L) {
+  dargs <- list(ivs = c(A = 2), n_item = n_obs)
+
+  parms <- funfact::gen_pop(dargs, n_subj, var_range = c(0, .6))
+  parms$item_rfx[, ] <- 0
+  parms$fixed[] <- 0
+  parms$err_var <- .1
+
+  dat <- funfact::sim_norm(dargs, n_subj, parms) %>%
+    tibble::as_tibble()
+
+  dat2 <- dat %>%
+    dplyr::select(-err) %>%
+    dplyr::mutate(subj_id = factor(subj_id),
+                  Ad = dplyr::if_else(A == "A1", -.5, .5),
+                  logit = 1 / (1 + exp(-Y)),
+                  ts = purrr::map(logit, oversampled_ts,
+                                  downsample = downsample)) %>%
+    dplyr::select(subj_id, A, Ad, Y = ts) %>%
+    tidyr::unnest()
 }
 
 #' @importFrom magrittr "%>%"
