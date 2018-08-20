@@ -6,7 +6,7 @@
 #' @return If estimation process converges, a \code{glmerMod} object; otherwise \code{NULL}.
 #' @export
 fit_logit_lmer <- function(formula, data) {
-  tryCatch(glmer(formula, data, binomial),
+  tryCatch(lme4::glmer(formula, data, binomial),
            error = function(e) NULL,
            warning = function(w) NULL)
 }

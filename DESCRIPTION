@@ -15,5 +15,6 @@ Imports: funfact,
     rlang,
     tidyr,
     ggplot2,
-    mgcv
+    mgcv,
+    lme4
 RoxygenNote: 6.0.1
