@@ -1,3 +1,16 @@
+#' Fit logistic regression model using lmer
+#'
+#' Convenience function that fits a logit model and returns NULL when the estimation process fails to converge.
+#' @param formula Model formula.
+#' @param data Data frame containing variables referenced in formula.
+#' @return If estimation process converges, a \code{glmerMod} object; otherwise \code{NULL}.
+#' @export
+fit_logit_lmer <- function(formula, data) {
+  tryCatch(glmer(formula, data, binomial),
+           error = function(e) NULL,
+           warning = function(w) NULL)
+}
+
 #' Fit model via Julia MixedModels package
 #'
 #' Fits a linear mixed-effects model via the Julia MixedModels
