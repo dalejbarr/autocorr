@@ -31,10 +31,13 @@ permutation_test <- function(dat, nmc = 1000L) {
 #' @return p value.
 #' @export
 elogit_test <- function(dat) {
-  dlog <- dplyr::summarize(dplyr::group_by(dat, subj_id, item_id, Ad),
-                           elog = log((sum(Y) + .5) / (length(Y) - sum(Y) + .5)))
-  mod <- tryCatch({
-    lme4::lmer(elog ~ Ad + (Ad | subj_id), dlog)
+  dlog <- dplyr::ungroup(
+                   dplyr::summarize(
+                            dplyr::group_by(dat, subj_id, item_id, Ad),
+                            elog = log((sum(Y) + .5) /
+                                       (length(Y) - sum(Y) + .5))))
+  tryCatch({
+    mod <- lme4::lmer(elog ~ Ad + (Ad | subj_id), dlog)
     tval <- lme4::fixef(mod) / sqrt(Matrix::diag(vcov(mod)))
     res <- 2 * (1 - pnorm(abs(tval)))
     res[[2]]
