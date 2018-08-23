@@ -159,7 +159,7 @@ gen_logit_data <- function(n_subj, n_obs, fixed, downsample = 1L) {
 
   parms <- funfact::gen_pop(dargs, n_subj, var_range = c(0, .6))
   parms$item_rfx[, ] <- 0
-  parms$fixed[] <- 0
+  parms$fixed[] <- fixed
   parms$err_var <- .1
 
   dat <- funfact::sim_norm(dargs, n_subj, parms) %>%
