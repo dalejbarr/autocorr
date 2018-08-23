@@ -4,7 +4,8 @@
 \alias{gamm_2x2}
 \title{Simulate and Fit GAMM}
 \usage{
-gamm_2x2(n_subj, n_obs, fixed, is_acf, amr, amr_wt = NULL, replace = TRUE)
+gamm_2x2(n_subj, n_obs, fixed, is_acf, amr, amr_wt = NULL,
+  replace = TRUE)
 }
 \arguments{
 \item{n_subj}{Number of subjects.}

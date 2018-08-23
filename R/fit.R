@@ -172,7 +172,7 @@ gen_logit_data <- function(n_subj, n_obs, fixed, downsample = 1L) {
                   logit = 1 / (1 + exp(-Y)),
                   ts = purrr::map(logit, oversampled_ts,
                                   downsample = downsample)) %>%
-    dplyr::select(subj_id, A, Ad, Y = ts) %>%
+    dplyr::select(subj_id, item_id, A, Ad, Y = ts) %>%
     tidyr::unnest()
 }
 
