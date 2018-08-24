@@ -17,7 +17,8 @@
 #'   response variable with autocorrelation for the blocked data.
 #' @importFrom magrittr %>%
 #' @export
-sim_2x2_sin <- function(n_subj, n_obs, fixed, err, phase = TRUE, amp = FALSE) {
+sim_2x2_sin <- function(n_subj, n_obs, fixed, err,
+                        phase = TRUE, amp = FALSE) {
   x <- seq(-pi, pi, length.out = n_obs)
 
   step_begin <- if (phase) runif(n_subj, -pi, pi) else rep(0, n_subj)
@@ -74,60 +75,40 @@ sim_2x2_sin <- function(n_subj, n_obs, fixed, err, phase = TRUE, amp = FALSE) {
 #'
 #' @param dat Data generated using \link{sim_2x2_sin}.
 #' @param cs Fit gamm smooth as main effect of trial (in addition to by-subject factor smooths).
+#' @param by_subj_fs Include by-subject factor smooths?
 #' @return Array with parameter estimates and standard errors.
 #' @export
-fit_2x2_sin <- function(dat, cs = FALSE) {
-  ## fit the GAMM models using mgcv::bam
+fit_2x2_sin <- function(dat, cs = FALSE, by_subj_fs = TRUE) {
+  ## determine the model formula
+  my_formula_rhs <- "AA2 * BB2 + \n   s(subj_id, AA2, bs = \"re\")"
+  my_formula_rhs_no_gamm <- paste0(my_formula_rhs,
+                                   " + \n   s(subj_id, bs = \"re\")")
+  
   if (cs) {
-    mod_no <- mgcv::bam(Y_acn ~ AA2 * BB2 +
-                          s(tnum_r, bs = "tp") +
-                          s(tnum_r, subj_id, bs = "fs") +
-                          s(subj_id, AA2, bs = "re"),
-                        data = dat)
-
-    mod_rand <- mgcv::bam(Y_acr ~ AA2 * BB2 +
-                            s(tnum_r, bs = "tp") +
-                            s(tnum_r, subj_id, bs = "fs") +
-                            s(subj_id, AA2, bs = "re"),
-                          data = dat)
-
-    mod_block <- mgcv::bam(Y_acb ~ AA2 * BB2 +
-                             s(tnum_b, bs = "tp") +
-                             s(tnum_b, subj_id, bs = "fs") +
-                             s(subj_id, AA2, bs = "re"),
-                           data = dat)    
-  } else {
-    mod_no <- mgcv::bam(Y_acn ~ AA2 * BB2 +
-                          s(tnum_r, subj_id, bs = "fs") +
-                          s(subj_id, AA2, bs = "re"),
-                        data = dat)
-
-    mod_rand <- mgcv::bam(Y_acr ~ AA2 * BB2 +
-                            s(tnum_r, subj_id, bs = "fs") +
-                            s(subj_id, AA2, bs = "re"),
-                          data = dat)
-
-    mod_block <- mgcv::bam(Y_acb ~ AA2 * BB2 +
-                             s(tnum_b, subj_id, bs = "fs") +
-                             s(subj_id, AA2, bs = "re"),
-                           data = dat)
+    my_formula_rhs <- paste0(my_formula_rhs,
+                             " + \n   s(tnum_r, bs = \"tp\")")
   }
 
+  if (by_subj_fs) {
+    my_formula_rhs <- paste(my_formula_rhs,
+                            " + \n   s(tnum_r, subj_id, bs = \"fs\")")
+  }
+
+  ## fit the GAMM models using mgcv::bam
+  mod_no <- mgcv::bam(as.formula(paste0("Y_acn ~", my_formula_rhs)),
+                      data = dat)
+  mod_rand <- mgcv::bam(as.formula(paste0("Y_acr ~", my_formula_rhs)),
+                        data = dat)
+  mod_block <- mgcv::bam(as.formula(paste0("Y_acb ~", my_formula_rhs)),
+                         data = dat)
+
   ## fit the non-GAMM models using mgcv::bam
-  mod_no_2 <- mgcv::bam(Y_acn ~ AA2 * BB2 +
-			  s(subj_id, bs = "re") +
-			  s(subj_id, AA2, bs = "re"),
-			data = dat)
-
-  mod_rand_2 <- mgcv::bam(Y_acr ~ AA2 * BB2 +
-			    s(subj_id, bs = "re") +
-			    s(subj_id, AA2, bs = "re"),
-			  data = dat)
-
-  mod_block_2 <- mgcv::bam(Y_acb ~ AA2 * BB2 +
-			     s(subj_id, bs = "re") +
-			     s(subj_id, AA2, bs = "re"),
-			   data = dat)
+  mod_no_2 <- mgcv::bam(as.formula(paste0("Y_acn ~", my_formula_rhs_no_gamm)),
+                        data = dat)
+  mod_rand_2 <- mgcv::bam(as.formula(paste0("Y_acr ~", my_formula_rhs_no_gamm)),
+                        data = dat)
+  mod_block_2 <- mgcv::bam(as.formula(paste0("Y_acb ~", my_formula_rhs_no_gamm)),
+                        data = dat)
 
   array(c(coef(mod_no)[1:4],
 	  sqrt(diag(vcov(mod_no)[1:4, 1:4])),
