@@ -187,6 +187,7 @@ sine_sim <- function(nmc,
   rmx
 }
 
+#' @export
 summary.sinemcs <- function(x, alpha = .05) {
   cat("Sine Wave Autocorrelation Simulation Results\n\n")
   cat("Number of Monte Carlo Runs: ", dim(x)[4], "\n\n")
@@ -201,6 +202,7 @@ summary.sinemcs <- function(x, alpha = .05) {
   print((nsig / ntot)[, , 2])
 }
 
+#' @export
 print.sinemcs <- function(x) {
   summary(x)
 }

@@ -4,8 +4,9 @@
 \alias{sine_sim}
 \title{Monte Carlo Simulation of Sine Wave Autocorrelation}
 \usage{
-sine_sim(nmc, nsubj = 48L, ntrials = 48L, fixed = rep(0, 4), err = 6,
-  varying_phase = TRUE, varying_amp = FALSE, re_varmax = 3)
+sine_sim(nmc, nsubj = 48L, ntrials = 48L, fixed = rep(0, 4),
+  err = 6, varying_phase = TRUE, varying_amp = FALSE,
+  re_varmax = 3)
 }
 \arguments{
 \item{nmc}{Number of Monte Carlo runs.}

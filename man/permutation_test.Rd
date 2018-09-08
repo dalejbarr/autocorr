@@ -2,7 +2,6 @@
 % Please edit documentation in R/misc.R, R/permute.R
 \name{permutation_test}
 \alias{permutation_test}
-\alias{permutation_test}
 \title{Run a permutation test on logit data}
 \usage{
 permutation_test(dat, nmc = 1000L)
@@ -24,8 +23,6 @@ p-value.
 p value.
 }
 \description{
-Run a permutation test on logit data
-
 Run a permutation on logistic regression datasets.
 }
 \details{
