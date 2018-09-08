@@ -395,3 +395,226 @@ stim_lists <- function(design_args,
     rownames(final_lists) <- NULL
     return(final_lists)
 }
+
+check_design_args <- function(design_args) {
+    ## TODO check integrity of design args
+    required_elements <- c("ivs")
+    missing_elements <- setdiff(required_elements, names(design_args))
+    if (length(missing_elements) > 0) {
+        stop("'design_args' missing element(s): ",
+             paste(missing_elements, collapse = ", "))
+    } else {}
+    return(TRUE)
+}
+
+#' Get the GLM formula for a factorially-designed experiment
+#'
+#' Get the formula corresponding to the general linear model for a
+#' factorially designed experiment, with maximal random effects.
+#' 
+#' @param design_args A list with experimental design information (see \code{link{stim_lists}})
+#' @param n_subj Number of subjects
+#' @param dv_name Name of dependent variable; \code{NULL} (default) for one-sided formula
+#' @param lme4_format Do you want the results combined as the model formula for a \code{lme4} model? (default \code{TRUE})
+#' @return A formula, character string, or list, depending
+design_formula <- function(design_args,
+                           n_subj = NULL,
+                           dv_name = NULL,
+                           lme4_format = TRUE) {
+    iv_names <- names(design_args[["ivs"]])
+
+    fixed <- paste(iv_names, collapse = " * ")
+
+    fac_cnts <- fac_counts(iv_names, trial_lists(design_args, subjects = n_subj))
+    fac_info <- attr(terms(as.formula(paste0("~", paste(iv_names, collapse = "*")))), "factors")
+
+    rfx <- lapply(fac_cnts, function(lx) {
+        lvec <- sapply(lx, function(mx) {
+            as.logical(prod(apply(mx, 2, function(xx) all(xx > 1))))
+        })
+        res <- fac_info[, lvec, drop = FALSE]        
+        keep_term <- rep(TRUE, ncol(res))
+        ## try to simplify the formula
+        for (cx in rev(seq_len(ncol(res))[-1])) {
+            drop_term <- sapply(seq_len(cx - 1), function(ccx) {
+                identical(as.logical(res[, ccx, drop = FALSE]) | as.logical(res[, cx, drop = FALSE]),
+                          as.logical(res[, cx, drop = FALSE]))
+            })
+            keep_term[seq_len(cx - 1)] <- keep_term[seq_len(cx - 1)] & (!drop_term)
+        }
+        fterms <- apply(res[, keep_term, drop = FALSE], 2, function(llx) {
+            paste(names(llx)[as.logical(llx)], collapse = " * ")
+        })
+        need_int <- any(apply(lx[[1]], 2, sum) > 1)
+        fterms2 <- if (need_int) c("1", fterms) else fterms
+        paste(fterms2, collapse = " + ")
+    })
+
+    form_list <- c(list(fixed = fixed), rfx)
+
+    if (lme4_format) {
+        form_str <- paste0(dv_name, " ~ ", form_list[["fixed"]], " + ",
+               paste(sapply(names(form_list[-1]),
+                            function(nx) paste0("(", rfx[[nx]], " | ", nx, ")")),
+                     collapse = " + "))
+        result <- as.formula(form_str)
+    } else {
+        result <- lapply(form_list, function(x) formula(paste0("~", x)))
+    }
+
+    return(result)
+}
+
+#' Calculate marginal and cell counts for factorially-designed data
+#'
+#' @param iv_names Names of independent variables in data.frame given by \code{dat}.
+#' @param dat A data frame
+#' @param unit_names Names of the fields containing sampling units (subjects, items)
+#' @return a list, the elements of which have the marginal/cell counts for each factor in the design
+fac_counts <- function(iv_names, dat, unit_names = c("subj_id", "item_id")) {    
+    fac_info <- attr(terms(as.formula(paste0("~", paste(iv_names, collapse = "*")))), "factors")
+    rfx <- sapply(unit_names, function(this_unit) {
+        ## figure out how many things are replicated by unit, how many times
+        rep_mx <- xtabs(paste0("~", paste(iv_names, collapse = "+"), "+", this_unit), dat)
+        lvec <- lapply(colnames(fac_info), function(cx) {
+            x <- fac_info[, cx, drop = FALSE]
+            ix <- seq_along(x)[as.logical(x)]
+            ## create margin table
+            marg_mx <- apply(rep_mx, c(ix, length(dim(rep_mx))), sum)
+            mmx <- apply(marg_mx, length(dim(marg_mx)), c)
+        })
+        names(lvec) <- colnames(fac_info)
+        return(lvec)
+        ## lvec <- apply(fac_info, 2, function(x) {
+        ##     ix <- seq_along(x)[as.logical(x)]
+        ##     ## create margin table
+        ##     marg_mx <- apply(rep_mx, c(ix, length(dim(rep_mx))), sum)
+        ##     mmx <- apply(marg_mx, length(dim(marg_mx)), c)
+        ## })
+    }, simplify = FALSE)
+    return(rfx)
+}
+
+#' Get names for predictors in factorial design
+#'
+#' Get the names for the numerical predictors corresponding to all
+#' main effects and interactions of categorical IVs in a factorial
+#' design.
+#'
+#' @param design_args A list with experimental design information (see \code{link{stim_lists}})
+#' @param design_formula A formula (default NULL, constructs from \code{design_args})
+#' @param contr_type Name of formula for generating contrasts (default "contr.dev")
+#' @return A character vector with names of all the terms
+term_names <- function(design_args,
+                       design_formula = NULL,
+                       contr_type = "contr.dev") {
+    check_design_args(design_args)
+    plists <- stim_lists(design_args)
+    cont <- as.list(rep(contr_type, length(design_args[["ivs"]])))
+    names(cont) <- names(design_args[["ivs"]])
+    if (is.null(design_formula)) design_formula <- as.formula(paste0("~",
+                                                               paste(names(design_args[["ivs"]]),
+                                                                     collapse = " * ")))
+    suppressWarnings(mmx <- model.matrix(design_formula, plists, contrasts.arg = cont))
+    return(colnames(mmx))
+}
+
+#' Compose response data from fixed and random effects
+#'
+#' @param design_args List containing information about the experiment
+#' design; see \code{\link{stim_lists}}
+#' @param fixed vector of fixed effects
+#' @param subj_rmx matrix of by-subject random effects
+#' @param item_rmx matrix of by-item random effects
+#' @param verbose give debugging info (default = \code{FALSE})
+#' @param contr_type contrast type (default "contr.dev"); see ?contrasts
+#'
+#' @details This will add together all of the fixed and random effects
+#' according to the linear model specified by the design.  Note,
+#' however, that it does not add in any residual noise; for that, use
+#' the function \code{\link{sim_norm}}.
+#' 
+#' @return a data frame containing response variable \code{Y}, the
+#' linear sum of all fixed and random effects.
+compose_data <- function(design_args,
+                         fixed = NULL,
+                         subj_rmx = NULL,
+                         item_rmx = NULL,
+                         verbose = FALSE,
+                         contr_type = "contr.dev") {
+    ## utility function for doing matrix multiplication
+    multiply_mx <- function(des_mx, rfx, row_ix, design_args) {
+        ## make sure all cols in rfx are represented in des_mx
+        diff_cols <- setdiff(colnames(rfx), colnames(des_mx))
+        if (length(diff_cols) != 0) {
+            stop("column(s) '", paste(diff_cols, collapse = ", "),
+                 "' not represented in terms '",
+                 paste(term_names(design_args[["ivs"]],
+                                  design_args[["between_subj"]],
+                                  design_args[["between_item"]]),
+                       collapse = ", "), "'")
+        } else {}
+
+        reduced_des <- des_mx[, colnames(rfx), drop = FALSE]
+
+        t_rfx <- t(rfx)
+        res_vec <- vector("numeric", length(row_ix))
+        for (ix in unique(row_ix)) {
+            lvec <- row_ix == ix
+            res_vec[lvec] <- c(reduced_des[lvec, , drop = FALSE] %*%
+                                   t_rfx[, ix, drop = FALSE])
+        }
+        res_vec
+    }
+
+    ivs_nrep <- design_args[["ivs"]]
+    if (!is.null(design_args[["n_rep"]])) {
+        if (design_args[["n_rep"]] > 1) {
+            ivs_nrep <- c(as.list(design_args[["ivs"]]),
+                          list(n_rep = paste0("r", seq_len(design_args[["n_rep"]]))))
+        } else {}
+    } else {}
+    iv_names <- names(ivs_nrep)
+    tlists <- trial_lists(design_args, subjects = nrow(subj_rmx))
+
+    cont <- as.list(rep(contr_type, length(ivs_nrep)))
+    names(cont) <- iv_names
+
+    mmx <- model.matrix(as.formula(paste0("~", paste(iv_names, collapse = "*"))),
+                        tlists,
+                        contrasts.arg = cont)
+
+    if (is.null(fixed)) {
+        fixed <- runif(ncol(mmx), -3, 3)
+        names(fixed) <- colnames(mmx)
+    } else {}
+
+    ## fixed component of Y
+    fix_y <- c(mmx %*% fixed) # fixed component of Y
+
+    if (is.null(subj_rmx)) {
+        stop("Autogeneration of subj_rmx not implemented yet; please define 'subj_rmx'")
+    } else {}
+    if (nrow(subj_rmx) != length(unique(tlists[["subj_id"]]))) {
+        stop("Argument 'subj_rmx' has ", nrow(subj_rmx), " rows; needs ",
+             length(unique(tlists[["subj_id"]])))
+    } else {}
+    sre <- multiply_mx(mmx, subj_rmx, tlists[["subj_id"]], design_args)
+
+    if (is.null(item_rmx)) {
+        stop("Autogeneration of item_rmx not implemented yet; please define 'item_rmx'")
+    } else {}
+    if (nrow(item_rmx) != length(unique(tlists[["item_id"]]))) {
+        stop("Argument 'item_rmx' has ", nrow(item_rmx), " rows; needs ",
+             length(unique(tlists[["item_id"]])))
+    } else {}
+    ire <- multiply_mx(mmx, item_rmx, tlists[["item_id"]], design_args)
+    ## err <- rnorm(nrow(tlists), sd = sqrt(err_var))
+    comb_mx <- matrix(nrow = nrow(tlists), ncol = 0)
+    if (verbose) {
+        ## comb_mx <- cbind(fix_y = fix_y, sre = sre, ire = ire, err = err)
+        comb_mx <- cbind(fix_y = fix_y, sre = sre, ire = ire)
+    } else {}
+    ## cbind(tlists, Y = fix_y + sre + ire + err, comb_mx)
+    cbind(tlists, Y = fix_y + sre + ire, comb_mx)
+}

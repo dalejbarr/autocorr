@@ -4,8 +4,7 @@
 \alias{sim_2x2}
 \title{Simulate data with autocorrelated errors}
 \usage{
-sim_2x2(n_subj, n_obs, params, is_acf, amx, amx_wt = NULL,
-  replace = TRUE)
+sim_2x2(n_subj, n_obs, params, is_acf, amx, amx_wt = NULL, replace = TRUE)
 }
 \arguments{
 \item{n_subj}{Number of subjects to simulate.}
@@ -33,9 +32,6 @@ A data frame, with \code{ts_r} as the trial number ordered
   response variable without autocorrelation; \code{Y_acr} as the
   response variable with autocorrelation; and \code{Y_acb} as the
   response variable with autocorrelation for the blocked data.
-}
-\description{
-Simulate data with autocorrelated errors
 }
 \details{
 Simulates data from a 2x2 mixed design, with factor A

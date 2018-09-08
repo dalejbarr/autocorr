@@ -47,7 +47,7 @@ sim_2x2 <- function(n_subj, n_obs, params, is_acf,
                       n_item = n_obs * 2L,
                       between_item = c("A", "B"),
                       between_subj = c("B"))
-  dat <- funfact::sim_norm(design_args, n_subj, params, verbose = TRUE) %>%
+  dat <- sim_norm(design_args, n_subj, params, verbose = TRUE) %>%
     dplyr::mutate(Y_fit = Y - err)
 
   n_per <- dat %>% dplyr::count(subj_id) %>% dplyr::pull(n) %>% unique()
