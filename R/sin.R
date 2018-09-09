@@ -124,7 +124,7 @@ fit_2x2_sin <- function(dat, cs = FALSE, by_subj_fs = TRUE) {
   mod_block <- mgcv::bam(as.formula(paste0("Y_acb ~", my_formula_rhs)),
                          data = dat)
 
-  ## fit the non-GAMM models using mgcv::bam
+  ## fit the LMEM models using mgcv::bam
   mod_rand_2 <- mgcv::bam(as.formula(paste0("Y_acr ~", my_formula_rhs_no_gamm)),
                         data = dat)
   mod_block_2 <- mgcv::bam(as.formula(paste0("Y_acb ~", my_formula_rhs_no_gamm)),
@@ -136,23 +136,6 @@ fit_2x2_sin <- function(dat, cs = FALSE, by_subj_fs = TRUE) {
         dimnames = list(parm = names(mod_stats(mod_rand, mod_rand_2))[1:15],
                         mod = c("GAMM", "LMEM"),
                         vers = c("randomized", "blocked")))  
-  ## array(c(coef(mod_no)[1:4],
-  ##  sqrt(diag(vcov(mod_no)[1:4, 1:4])),
-  ##  coef(mod_rand)[1:4],
-  ##  sqrt(diag(vcov(mod_rand)[1:4, 1:4])),
-  ##  coef(mod_block)[1:4],
-  ##  sqrt(diag(vcov(mod_block)[1:4, 1:4])),
-  ##  coef(mod_no_2)[1:4],
-  ##  sqrt(diag(vcov(mod_no_2)[1:4, 1:4])),
-  ##  coef(mod_rand_2)[1:4],
-  ##  sqrt(diag(vcov(mod_rand_2)[1:4, 1:4])),
-  ##  coef(mod_block_2)[1:4],
-  ##  sqrt(diag(vcov(mod_block_2)[1:4, 1:4]))),
-  ##  dim = c(4, 2, 6),
-  ##  dimnames = list(coef = c("(Intercept)", "A", "B", "A:B"),
-  ## 	param = c("est", "stderr"),
-  ## 	model = c("gamm_no", "gamm_rand", "gamm_block",
-  ## 		  "nogamm_no", "nogamm_rand", "nogamm_block")))
 }
 
 #' Monte Carlo Simulation of Sine Wave Autocorrelation
