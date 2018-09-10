@@ -127,7 +127,7 @@ fit_2x2_sin <- function(dat, cs = FALSE, by_subj_fs = TRUE) {
   mod_block <- mgcv::bam(as.formula(paste0("Y_acb ~", my_formula_rhs_b)),
                          data = dat)
 
-  ## fit the non-GAMM models using mgcv::bam
+  ## fit the LMEM models using mgcv::bam
   mod_rand_2 <- mgcv::bam(as.formula(paste0("Y_acr ~", my_formula_rhs_no_gamm)),
                         data = dat)
   mod_block_2 <- mgcv::bam(as.formula(paste0("Y_acb ~", my_formula_rhs_no_gamm)),
