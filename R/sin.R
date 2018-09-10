@@ -3,10 +3,10 @@
 #' @param n_subj Number of subjects to simulate.
 #' @param n_obs Number of observations per subject.
 #' @param fixed Vector of population parameters for the fixed effects (intercept, main effect of A, main effect of B, AB interaction).
-#' @param err Sigma squared, the residual error parameter.
+#' @param err_range Two-element vector defining the range for sigma^2, the residual error parameter.
+#' @param re_range Two-element vector defining the range for random effect variance (intercept and slope of A).
 #' @param phase Whether the phase of each participant's time-varying function is offset by a random angle (from -pi to pi).
 #' @param amp Whether the amplitude of each participant's time-varying function is modulated by a random value (from 0 to 2).
-#' @param re_varmax Maximum variance for random effects parameters (slopes and intercepts).
 #' @details Simulates data from a 2x2 mixed design, with factor A
 #'   within subjects and factor B between subjects.
 #' @return A data frame, with \code{ts_r} as the trial number ordered
@@ -17,23 +17,26 @@
 #'   response variable with autocorrelation for the blocked data.
 #' @importFrom magrittr %>%
 #' @export
-sim_2x2_sin <- function(n_subj, n_obs, fixed, err,
-                        phase = TRUE, amp = FALSE,
-                        re_varmax = 3) {
+sim_2x2_sin <- function(n_subj, n_obs, fixed,
+                        err_range, re_range,
+                        phase = TRUE, amp = FALSE) {
   x <- seq(-pi, pi, length.out = n_obs)
 
   step_begin <- if (phase) runif(n_subj, -pi, pi) else rep(0, n_subj)
   step_amp <- if (amp) runif(n_subj, 0, 2) else rep(1, n_subj)
 
+  err <- runif(1, err_range[1], err_range[2])
+  
   resids <- purrr::map2(step_begin, step_amp,
-                        ~ rnorm(n_obs, .y * (sin(x + .x) / sd(sin(x))), sqrt(err)))
+                        ~ rnorm(n_obs, .y * (sin(x + .x) / sd(sin(x))),
+                                sqrt(err)))
 
   my_design <- list(ivs = c(A = 2, B = 2),
 		    n_item = n_obs * 2L,
 		    between_item = c("A", "B"),
 		    between_subj = c("B"))
 
-  parms <- gen_pop(my_design, n_subj, var_range = c(0, re_varmax))
+  parms <- gen_pop(my_design, n_subj, var_range = re_range)
   parms$fixed[] <- fixed
   parms$item_rfx[,] <- 0
   parms$err_var <- 0
@@ -157,16 +160,17 @@ sine_sim <- function(nmc,
                      nsubj = 48L,
                      ntrials = 48L,
                      fixed = rep(0, 4),
-                     err = 6,
+                     err_range = c(1, 3),
+                     re_range = c(1, 3),
                      varying_phase = TRUE,
-                     varying_amp = FALSE,
-                     re_varmax = 3) {
+                     varying_amp = FALSE) {
   rmx <- replicate(nmc, {
     dat <- sim_2x2_sin(nsubj, ntrials,
-                       fixed, err,
+                       fixed,
+                       err_range = err_range,
+                       re_range = re_range,
                        phase = varying_phase,
-                       amp = varying_amp,
-                       re_varmax = re_varmax)
+                       amp = varying_amp)
     fit_2x2_sin(dat, cs = !varying_phase)
   })
   class(rmx) <- "sinemcs"

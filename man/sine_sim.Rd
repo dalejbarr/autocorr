@@ -4,8 +4,9 @@
 \alias{sine_sim}
 \title{Monte Carlo Simulation of Sine Wave Autocorrelation}
 \usage{
-sine_sim(nmc, nsubj = 48L, ntrials = 48L, fixed = rep(0, 4), err = 6,
-  varying_phase = TRUE, varying_amp = FALSE, re_varmax = 3)
+sine_sim(nmc, nsubj = 48L, ntrials = 48L, fixed = rep(0, 4),
+  err_range = c(1, 3), re_range = c(1, 3), varying_phase = TRUE,
+  varying_amp = FALSE)
 }
 \arguments{
 \item{nmc}{Number of Monte Carlo runs.}
@@ -16,11 +17,11 @@ sine_sim(nmc, nsubj = 48L, ntrials = 48L, fixed = rep(0, 4), err = 6,
 
 \item{fixed}{Fixed effect size (four-element vector with intercept, main effect of A, main effect of B, and AB interaction).}
 
-\item{err}{Error variance (sigma^2).}
-
 \item{varying_phase}{Does the sine-wave autocorrelation have varying (vs fixed) phase over subjects?}
 
 \item{varying_amp}{Does the sine-wave autocorrelation have varying (vs fixed) amplitude over subjects?}
+
+\item{err}{Error variance (sigma^2).}
 
 \item{re_varmax}{Maximum of the range for the random effect variance parameters.}
 }
