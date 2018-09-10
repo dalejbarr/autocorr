@@ -42,7 +42,7 @@ sim_2x2_sin <- function(n_subj, n_obs, fixed, err,
     dplyr::mutate(subj_id = factor(subj_id),
 		  list_id = factor(list_id),
 		  item_id = factor(item_id)) %>%
-    rename(Y_fit = Y)
+    dplyr::rename(Y_fit = Y)
 
   n_per <- dat %>% dplyr::count(subj_id) %>% dplyr::pull(n) %>% unique()
   stopifnot(length(n_per) == 1L)
