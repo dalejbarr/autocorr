@@ -3,7 +3,7 @@
 #' @param n_subj Number of subjects to simulate.
 #' @param n_obs Number of observations per subject.
 #' @param fixed Vector of population parameters for the fixed effects (intercept, main effect of A, main effect of B, AB interaction).
-#' @param err Sigma, the residual error parameter.
+#' @param err Sigma squared, the residual error parameter.
 #' @param phase Whether the phase of each participant's time-varying function is offset by a random angle (from -pi to pi).
 #' @param amp Whether the amplitude of each participant's time-varying function is modulated by a random value (from 0 to 2).
 #' @param re_varmax Maximum variance for random effects parameters (slopes and intercepts).
@@ -12,8 +12,7 @@
 #' @return A data frame, with \code{ts_r} as the trial number ordered
 #'   randomly; \code{ts_b} as the trial number blocked by the within
 #'   factor ("A"); \code{Y_fit} as the 'fitted' value (combining fixed
-#'   and random effects but not residual error); \code{Y_acn} as the
-#'   response variable without autocorrelation; \code{Y_acr} as the
+#'   and random effects but not residual error); \code{Y_acr} as the
 #'   response variable with autocorrelation; and \code{Y_acb} as the
 #'   response variable with autocorrelation for the blocked data.
 #' @importFrom magrittr %>%
@@ -27,8 +26,7 @@ sim_2x2_sin <- function(n_subj, n_obs, fixed, err,
   step_amp <- if (amp) runif(n_subj, 0, 2) else rep(1, n_subj)
 
   resids <- purrr::map2(step_begin, step_amp,
-                        ~ rnorm(n_obs, .y * (sin(x + .x) / sd(sin(x))), err))
-  resids_no_ar <- purrr::map(resids, sample) # shuffled
+                        ~ rnorm(n_obs, .y * (sin(x + .x) / sd(sin(x))), sqrt(err)))
 
   my_design <- list(ivs = c(A = 2, B = 2),
 		    n_item = n_obs * 2L,
@@ -38,13 +36,13 @@ sim_2x2_sin <- function(n_subj, n_obs, fixed, err,
   parms <- gen_pop(my_design, n_subj, var_range = c(0, re_varmax))
   parms$fixed[] <- fixed
   parms$item_rfx[,] <- 0
-  parms$err_var <- err
+  parms$err_var <- 0
 
   dat <- sim_norm(my_design, n_subj, parms, verbose = TRUE) %>%
     dplyr::mutate(subj_id = factor(subj_id),
 		  list_id = factor(list_id),
-		  item_id = factor(item_id),
-		  Y_fit = Y - err)
+		  item_id = factor(item_id)) %>%
+    rename(Y_fit = Y)
 
   n_per <- dat %>% dplyr::count(subj_id) %>% dplyr::pull(n) %>% unique()
   stopifnot(length(n_per) == 1L)
@@ -55,8 +53,7 @@ sim_2x2_sin <- function(n_subj, n_obs, fixed, err,
     dplyr::mutate(ts_r = sample(seq_len(n_per))) %>%
     dplyr::ungroup() %>%
     dplyr::arrange(subj_id, ts_r) %>%
-    dplyr::mutate(Y_acr = Y_fit + unlist(resids),
-		  Y_acn = Y_fit + unlist(resids_no_ar))
+    dplyr::mutate(Y_acr = Y_fit + unlist(resids))
 
   ## trials blocked by level of A (randomized within)
   dat2 %>%
@@ -69,7 +66,7 @@ sim_2x2_sin <- function(n_subj, n_obs, fixed, err,
 		  tnum_r = (ts_r - (n_obs + 1) / 2) / (n_obs - 1),
 		  tnum_b = (ts_b - (n_obs + 1) / 2) / (n_obs - 1)) %>%
     dplyr::select(subj_id, item_id, ts_r, ts_b, A, B,
-		  Y_fit, Y_acn, Y_acr, Y_acb, tnum_r, tnum_b) %>%
+		  Y_fit, Y_acr, Y_acb, tnum_r, tnum_b) %>%
     with_dev_pred(c("A", "B"))
 }
 
@@ -105,23 +102,29 @@ fit_2x2_sin <- function(dat, cs = FALSE, by_subj_fs = TRUE) {
   }
   ## determine the model formula
   my_formula_rhs <- "AA2 * BB2 + \n   s(subj_id, AA2, bs = \"re\")"
+  my_formula_rhs_b <- my_formula_rhs # blocked version
+  
   my_formula_rhs_no_gamm <- paste0(my_formula_rhs,
                                    " + \n   s(subj_id, bs = \"re\")")
   
   if (cs) {
     my_formula_rhs <- paste0(my_formula_rhs,
                              " + \n   s(tnum_r, bs = \"tp\")")
+    my_formula_rhs_b <- paste0(my_formula_rhs_b,
+                             " + \n   s(tnum_b, bs = \"tp\")")
   }
 
   if (by_subj_fs) {
     my_formula_rhs <- paste(my_formula_rhs,
                             " + \n   s(tnum_r, subj_id, bs = \"fs\")")
+    my_formula_rhs_b <- paste(my_formula_rhs_b,
+                              " + \n   s(tnum_b, subj_id, bs = \"fs\")")
   }
 
   ## fit the GAMM models using mgcv::bam
   mod_rand <- mgcv::bam(as.formula(paste0("Y_acr ~", my_formula_rhs)),
                         data = dat)
-  mod_block <- mgcv::bam(as.formula(paste0("Y_acb ~", my_formula_rhs)),
+  mod_block <- mgcv::bam(as.formula(paste0("Y_acb ~", my_formula_rhs_b)),
                          data = dat)
 
   ## fit the non-GAMM models using mgcv::bam
@@ -136,23 +139,6 @@ fit_2x2_sin <- function(dat, cs = FALSE, by_subj_fs = TRUE) {
         dimnames = list(parm = names(mod_stats(mod_rand, mod_rand_2))[1:15],
                         mod = c("GAMM", "LMEM"),
                         vers = c("randomized", "blocked")))  
-  ## array(c(coef(mod_no)[1:4],
-  ##  sqrt(diag(vcov(mod_no)[1:4, 1:4])),
-  ##  coef(mod_rand)[1:4],
-  ##  sqrt(diag(vcov(mod_rand)[1:4, 1:4])),
-  ##  coef(mod_block)[1:4],
-  ##  sqrt(diag(vcov(mod_block)[1:4, 1:4])),
-  ##  coef(mod_no_2)[1:4],
-  ##  sqrt(diag(vcov(mod_no_2)[1:4, 1:4])),
-  ##  coef(mod_rand_2)[1:4],
-  ##  sqrt(diag(vcov(mod_rand_2)[1:4, 1:4])),
-  ##  coef(mod_block_2)[1:4],
-  ##  sqrt(diag(vcov(mod_block_2)[1:4, 1:4]))),
-  ##  dim = c(4, 2, 6),
-  ##  dimnames = list(coef = c("(Intercept)", "A", "B", "A:B"),
-  ## 	param = c("est", "stderr"),
-  ## 	model = c("gamm_no", "gamm_rand", "gamm_block",
-  ## 		  "nogamm_no", "nogamm_rand", "nogamm_block")))
 }
 
 #' Monte Carlo Simulation of Sine Wave Autocorrelation
@@ -175,14 +161,14 @@ sine_sim <- function(nmc,
                      varying_phase = TRUE,
                      varying_amp = FALSE,
                      re_varmax = 3) {
-  rmx <- replicate(nmc,
-                   fit_2x2_sin(
-                     sim_2x2_sin(nsubj, ntrials,
-                                 fixed, err,
-                                 phase = varying_phase,
-                                 amp = varying_amp,
-                                 re_varmax = re_varmax),
-                     cs = !varying_phase))
+  rmx <- replicate(nmc, {
+    dat <- sim_2x2_sin(nsubj, ntrials,
+                       fixed, err,
+                       phase = varying_phase,
+                       amp = varying_amp,
+                       re_varmax = re_varmax)
+    fit_2x2_sin(dat, cs = !varying_phase)
+  })
   class(rmx) <- "sinemcs"
   rmx
 }
