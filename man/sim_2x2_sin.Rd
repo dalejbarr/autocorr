@@ -14,7 +14,7 @@ sim_2x2_sin(n_subj, n_obs, fixed, err, phase = TRUE, amp = FALSE,
 
 \item{fixed}{Vector of population parameters for the fixed effects (intercept, main effect of A, main effect of B, AB interaction).}
 
-\item{err}{Sigma, the residual error parameter.}
+\item{err}{Sigma squared, the residual error parameter.}
 
 \item{phase}{Whether the phase of each participant's time-varying function is offset by a random angle (from -pi to pi).}
 
@@ -26,8 +26,7 @@ sim_2x2_sin(n_subj, n_obs, fixed, err, phase = TRUE, amp = FALSE,
 A data frame, with \code{ts_r} as the trial number ordered
   randomly; \code{ts_b} as the trial number blocked by the within
   factor ("A"); \code{Y_fit} as the 'fitted' value (combining fixed
-  and random effects but not residual error); \code{Y_acn} as the
-  response variable without autocorrelation; \code{Y_acr} as the
+  and random effects but not residual error); \code{Y_acr} as the
   response variable with autocorrelation; and \code{Y_acb} as the
   response variable with autocorrelation for the blocked data.
 }
