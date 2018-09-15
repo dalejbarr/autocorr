@@ -18,3 +18,6 @@ sim_acerr(source_acf, length.out = 48L, sd = 1, center = TRUE)
 \value{
 A vector of residuals modeled after \code{source_acf}.
 }
+\description{
+Simulate autocorrelated residual error based on source function
+}

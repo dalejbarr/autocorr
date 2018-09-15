@@ -7,6 +7,7 @@
 #' @param re_range Two-element vector defining the range for random effect variance (intercept and slope of A).
 #' @param phase Whether the phase of each participant's time-varying function is offset by a random angle (from -pi to pi).
 #' @param amp Whether the amplitude of each participant's time-varying function is modulated by a random value (from 0 to 2).
+#' @param verbose Whether to include random intercept, random slope, phase angle, and amplitude for each participant.
 #' @details Simulates data from a 2x2 mixed design, with factor A
 #'   within subjects and factor B between subjects.
 #' @return A data frame, with \code{ts_r} as the trial number ordered
@@ -19,7 +20,8 @@
 #' @export
 sim_2x2_sin <- function(n_subj, n_obs, fixed,
                         err_range, re_range,
-                        phase = TRUE, amp = FALSE) {
+                        phase = TRUE, amp = FALSE,
+                        verbose = FALSE) {
   x <- seq(-pi, pi, length.out = n_obs)
 
   step_begin <- if (phase) runif(n_subj, -pi, pi) else rep(0, n_subj)
@@ -31,6 +33,18 @@ sim_2x2_sin <- function(n_subj, n_obs, fixed,
                         ~ rnorm(n_obs, .y * (sin(x + .x) / sd(sin(x))),
                                 sqrt(err)))
 
+  rtbl <- tibble::tibble(subj_id = factor(seq_len(n_subj)), phase = step_begin,
+                         amp = step_amp) %>%
+    dplyr::mutate(
+             resid = purrr::map2(
+                              step_begin, step_amp,
+                              ~ tibble::tibble(t = seq_along(x),
+                                               x = x,
+                                               sin = .y * (sin(x + .x) / sd(sin(x))),
+                                               err = rnorm(n_obs, 0, sqrt(err)),
+                                               resid = sin + err))) %>%
+    tidyr::unnest()
+  
   my_design <- list(ivs = c(A = 2, B = 2),
 		    n_item = n_obs * 2L,
 		    between_item = c("A", "B"),
@@ -45,32 +59,58 @@ sim_2x2_sin <- function(n_subj, n_obs, fixed,
     dplyr::mutate(subj_id = factor(subj_id),
 		  list_id = factor(list_id),
 		  item_id = factor(item_id)) %>%
-    dplyr::rename(Y_fit = Y)
+    dplyr::rename(Y_fit = Y) %>%
+    dplyr::select(-err, -ire)
 
   n_per <- dat %>% dplyr::count(subj_id) %>% dplyr::pull(n) %>% unique()
   stopifnot(length(n_per) == 1L)
-
+  
   ## trials in random order
   dat2 <- dat %>%
     dplyr::group_by(subj_id) %>%
     dplyr::mutate(ts_r = sample(seq_len(n_per))) %>%
     dplyr::ungroup() %>%
     dplyr::arrange(subj_id, ts_r) %>%
-    dplyr::mutate(Y_acr = Y_fit + unlist(resids))
+    dplyr::inner_join(rtbl, c("subj_id" = "subj_id",
+                              "ts_r" = "t")) %>%
+    dplyr::rename(x_r = x, sin_r = sin, err_r = err, res_r = resid) %>%
+    dplyr::mutate(Y_acr = Y_fit + res_r)
 
   ## trials blocked by level of A (randomized within)
-  dat2 %>%
+  dat3 <- dat2 %>%
     dplyr::group_by(subj_id, A) %>%
     dplyr::mutate(ts_b = sample(seq_len(n_per / 2) +
 				(A == "A2") * (n_per / 2))) %>%
     dplyr::ungroup() %>%
     dplyr::arrange(subj_id, ts_b) %>%
-    dplyr::mutate(Y_acb = Y_fit + unlist(resids),
+    dplyr::inner_join(rtbl %>% dplyr::select(-phase, -amp),
+                      c("subj_id" = "subj_id",
+                        "ts_b" = "t")) %>%
+    dplyr::rename(x_b = x, sin_b = sin, err_b = err, res_b = resid) %>%  
+    dplyr::mutate(Y_acb = Y_fit + res_b,
 		  tnum_r = (ts_r - (n_obs + 1) / 2) / (n_obs - 1),
 		  tnum_b = (ts_b - (n_obs + 1) / 2) / (n_obs - 1)) %>%
-    dplyr::select(subj_id, item_id, ts_r, ts_b, A, B,
-		  Y_fit, Y_acr, Y_acb, tnum_r, tnum_b) %>%
-    with_dev_pred(c("A", "B"))
+    with_dev_pred(c("A", "B")) %>%
+    select(subj_id, A, B, AA2, BB2, tnum_b, tnum_r, Y_acb, Y_acr,
+           ts_b, x_b, sin_b, err_b,
+           ts_r, x_r, sin_r, err_r,
+           Y_fit, fix_y, sre, phase, amp)
+
+  if (verbose) {
+    ## get random effects
+    rfx <- dplyr::distinct(dat, subj_id, A, sre) %>%
+      tidyr::spread(A, sre) %>%
+      dplyr::mutate(sri = (A1 + A2) / 2,#
+                    srs = (A2 - A1)) %>%
+      dplyr::select(-A1, -A2)
+
+    dat3 %>%
+      dplyr::inner_join(rfx, "subj_id") %>%
+      dplyr::select(subj_id:fix_y, phase, amp, sre, sri, srs)
+  } else {
+    dat3 %>%
+      dplyr::select(subj_id:Y_acr)
+  }
 }
 
 #' Fit models to 2x2 data with sine wave errors

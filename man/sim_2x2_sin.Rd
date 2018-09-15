@@ -5,7 +5,7 @@
 \title{Simulate data with sine-wave autocorrelated errors}
 \usage{
 sim_2x2_sin(n_subj, n_obs, fixed, err_range, re_range, phase = TRUE,
-  amp = FALSE)
+  amp = FALSE, verbose = FALSE)
 }
 \arguments{
 \item{n_subj}{Number of subjects to simulate.}
@@ -21,6 +21,8 @@ sim_2x2_sin(n_subj, n_obs, fixed, err_range, re_range, phase = TRUE,
 \item{phase}{Whether the phase of each participant's time-varying function is offset by a random angle (from -pi to pi).}
 
 \item{amp}{Whether the amplitude of each participant's time-varying function is modulated by a random value (from 0 to 2).}
+
+\item{verbose}{Whether to include random intercept, random slope, phase angle, and amplitude for each participant.}
 }
 \value{
 A data frame, with \code{ts_r} as the trial number ordered
