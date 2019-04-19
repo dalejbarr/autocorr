@@ -18,71 +18,59 @@ sim_acerr <- function(source_acf, length.out = 48L, sd = 1,
     res
 }
 
-#' @title Simulate data with autocorrelated errors
+#' @title Simulate data with naturalistic autocorrelated errors 
 #'
 #' @param n_subj Number of subjects to simulate.
-#' @param n_obs Number of observations per subject.
-#' @param params Population parameter values for the data generating
-#'   process; the structure should be identical to that returned by
-#'   \code{\link{funfact::gen_pop}}.
-#' @param is_acf Is argument \code{amr} a list of residuals (TRUE) or a matrix
-#'   of autocorrelation functions (FALSE)?
-#' @param amx List of residuals or matrix of autocorrelation functions, with each element or row representing a different subject.
-#' @param amx_wt Weights for sampling elements/rows from \code{amx}; NULL gives equal probability.
-#' @param replace Whether to sample residual vectors with replacement.
+#' @param fixed Vector of population parameters for the fixed effects (intercept, main effect of A, main effect of B, AB interaction).
+#' @param re_range Two-element vector defining the range for random effect variance (intercept and slope of A).
 #' @details Simulates data from a 2x2 mixed design, with factor A
-#'   within subjects and factor B between subjects.
-#' @return A data frame, with \code{ts_r} as the trial number ordered
-#'   randomly; \code{ts_b} as the trial number blocked by the within
-#'   factor ("A"); \code{Y_fit} as the 'fitted' value (combining fixed
-#'   and random effects but not residual error); \code{Y_acn} as the
-#'   response variable without autocorrelation; \code{Y_acr} as the
-#'   response variable with autocorrelation; and \code{Y_acb} as the
-#'   response variable with autocorrelation for the blocked data.
+#'   within subjects and factor B between subjects, with residuals
+#'   randomly sampled from the KKL dataset (see ?KKL in the
+#'   RePsychLing package).
+#' @seealso \code{\link{kkl_df}}, \code{\link{kkl_mx}}
+#' @return A data frame, with:
+#' \describe{
+#'    \item{ts_r}{the trial number given random ordering}
+#'    \item{ts_b}{the trial number given blocked allocation of trials by the within-factor "A"}
+#'    \item{Y_fit}{the 'fitted' value (combining fixed and random effects but not residual error)}
+#'    \item{Y_acr}{the response variable (random order)}
+#'    \item{Y_acb}{the response variable (blocked order)}
+#' }
 #' @importFrom magrittr %>%
 #' @export
-sim_2x2 <- function(n_subj, n_obs, params, is_acf,
-                    amx, amx_wt = NULL, replace = TRUE) {
+sim_2x2_kkl <- function(n_subj, fixed, re_range) {
+  n_per <- 800L # number of trials
+
   design_args <- list(ivs = c(A = 2, B = 2),
-                      n_item = n_obs * 2L,
+                      n_item = n_per * 2L, 
                       between_item = c("A", "B"),
                       between_subj = c("B"))
-  dat <- sim_norm(design_args, n_subj, params, verbose = TRUE) %>%
+
+  vr <- if (length(re_range) == 1L) rep(re_range, 2L) else re_range
+  
+  parms <- gen_pop(design_args, n_subj, var_range = vr)
+  parms$fixed[] <- fixed
+  parms$item_rfx[,] <- 0
+  parms$err_var <- 0
+
+  if (n_subj > nrow(kkl_mx))
+    stop("n_subj cannot exceed number of KKL subjects (86)")
+
+  if (n_subj %% 2)
+    stop("n_subj must be divisible by 2")
+      
+  dat <- sim_norm(design_args, n_subj, parms, verbose = TRUE) %>%
     dplyr::mutate(Y_fit = Y - err)
 
-  n_per <- dat %>% dplyr::count(subj_id) %>% dplyr::pull(n) %>% unique()
-  stopifnot(length(n_per) == 1L)
-
-  if (is_acf) {
-    if (!is.matrix(amx)) {
-      stop("is_acf was TRUE but amx was not a matrix")
-    }
-    acerr_all <- purrr::map(sample(seq_len(nrow(amx)), n_subj, replace,
-                                   prob = amx_wt),
-                            ~ sim_acerr(amx[.x, ], n_per, params$err_var))
-  } else {
-    if (!is.list(amx)) {
-      stop("is_acf was FALSE but amx was not a list")
-    }
-    acerr_all <- purrr::map(sample(seq_len(length(amx)), n_subj, replace,
-                                   prob = amx_wt),
-                            function(.x) {
-                              maxpos <- length(amx[[.x]]) - n_per + 1L
-                              t0 <- sample(seq_len(maxpos), 1L)
-                              amx[[.x]][t0:(t0 + n_per - 1L)]
-                            })    
-  }
-
-  acerr_no_ac <- purrr::map(acerr_all, sample)
-
+  res <- c(t(kkl_mx[sample(nrow(kkl_mx), n_subj), ]))
+  
   ## trials in random order
   dat2 <- dat %>%
     dplyr::group_by(subj_id) %>%
     dplyr::mutate(ts_r = sample(seq_len(n_per))) %>%
     dplyr::ungroup() %>%
     dplyr::arrange(subj_id, ts_r) %>%
-    dplyr::mutate(Y_acr = Y_fit + unlist(acerr_all),
-                  Y_acn = Y_fit + unlist(acerr_no_ac))
+    dplyr::mutate(Y_acr = Y_fit + res)
 
   ## trials blocked by level of A (randomized within)
   dat2 %>%
@@ -91,7 +79,7 @@ sim_2x2 <- function(n_subj, n_obs, params, is_acf,
                                 (A == "A2") * (n_per / 2))) %>%
     dplyr::ungroup() %>%
     dplyr::arrange(subj_id, ts_b) %>%
-    dplyr::mutate(Y_acb = Y_fit + unlist(acerr_all)) %>%
+    dplyr::mutate(Y_acb = Y_fit + res) %>%
     dplyr::select(subj_id, item_id, ts_r, ts_b, A, B,
-                  Y_fit, Y_acn, Y_acr, Y_acb)
+                  Y_fit, Y_acr, Y_acb)
 }
