@@ -17,13 +17,13 @@ sine_sim(nmc, nsubj = 48L, ntrials = 48L, fixed = rep(0, 4),
 
 \item{fixed}{Fixed effect size (four-element vector with intercept, main effect of A, main effect of B, and AB interaction).}
 
+\item{err_range}{Error variance (sigma^2).}
+
+\item{re_range}{Range of random effects variance.}
+
 \item{varying_phase}{Does the sine-wave autocorrelation have varying (vs fixed) phase over subjects?}
 
 \item{varying_amp}{Does the sine-wave autocorrelation have varying (vs fixed) amplitude over subjects?}
-
-\item{err}{Error variance (sigma^2).}
-
-\item{re_varmax}{Maximum of the range for the random effect variance parameters.}
 }
 \value{
 An array with labeled dimensions of class 'sinemcs'.

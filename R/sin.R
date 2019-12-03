@@ -190,10 +190,10 @@ fit_2x2_sin <- function(dat, cs = FALSE, by_subj_fs = TRUE) {
 #' @param nsubj Number of subjects per dataset.
 #' @param ntrials Number of trials per subject.
 #' @param fixed Fixed effect size (four-element vector with intercept, main effect of A, main effect of B, and AB interaction).
-#' @param err Error variance (sigma^2).
+#' @param err_range Error variance (sigma^2).
+#' @param re_range Range of random effects variance.
 #' @param varying_phase Does the sine-wave autocorrelation have varying (vs fixed) phase over subjects?
 #' @param varying_amp Does the sine-wave autocorrelation have varying (vs fixed) amplitude over subjects?
-#' @param re_varmax Maximum of the range for the random effect variance parameters.
 #' @return An array with labeled dimensions of class 'sinemcs'.
 #' @export
 sine_sim <- function(nmc,
