@@ -191,7 +191,7 @@ gen_2x2 <- function(n_subj, n_obs, fixed, is_acf, amx, amx_wt = NULL,
   parms$err_var <- 6
 
   sim_2x2(n_subj, n_obs, parms, is_acf, amx, amx_wt, replace) %>%
-    with_dev_pred(c("A", "B"))
+    funfact::with_dev_pred(c("A", "B"))
 }
 
 

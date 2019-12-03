@@ -90,7 +90,7 @@ sim_2x2_sin <- function(n_subj, n_obs, fixed,
     dplyr::mutate(Y_acb = Y_fit + res_b,
 		  tnum_r = (ts_r - (n_obs + 1) / 2) / (n_obs - 1),
 		  tnum_b = (ts_b - (n_obs + 1) / 2) / (n_obs - 1)) %>%
-    with_dev_pred(c("A", "B")) %>%
+    funfact::with_dev_pred(c("A", "B")) %>%
     dplyr::select(subj_id, A, B, AA2, BB2, tnum_b, tnum_r, Y_acb, Y_acr,
            ts_b, x_b, sin_b, err_b,
            ts_r, x_r, sin_r, err_r,
