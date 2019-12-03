@@ -50,12 +50,12 @@ sim_2x2_sin <- function(n_subj, n_obs, fixed,
 		    between_item = c("A", "B"),
 		    between_subj = c("B"))
 
-  parms <- gen_pop(my_design, n_subj, var_range = re_range)
+  parms <- funfact::gen_pop(my_design, n_subj, var_range = re_range)
   parms$fixed[] <- fixed
   parms$item_rfx[,] <- 0
   parms$err_var <- 0
 
-  dat <- sim_norm(my_design, n_subj, parms, verbose = TRUE) %>%
+  dat <- funfact::sim_norm(my_design, n_subj, parms, verbose = TRUE) %>%
     dplyr::mutate(subj_id = factor(subj_id),
 		  list_id = factor(list_id),
 		  item_id = factor(item_id)) %>%

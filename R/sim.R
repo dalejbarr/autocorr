@@ -48,7 +48,7 @@ sim_2x2_kkl <- function(n_subj, fixed, re_range) {
 
   vr <- if (length(re_range) == 1L) rep(re_range, 2L) else re_range
   
-  parms <- gen_pop(design_args, n_subj, var_range = vr)
+  parms <- funfact::gen_pop(design_args, n_subj, var_range = vr)
   parms$fixed[] <- fixed
   parms$item_rfx[,] <- 0
   parms$err_var <- 0
@@ -59,7 +59,7 @@ sim_2x2_kkl <- function(n_subj, fixed, re_range) {
   if (n_subj %% 2)
     stop("n_subj must be divisible by 2")
       
-  dat <- sim_norm(design_args, n_subj, parms, verbose = TRUE) %>%
+  dat <- funfact::sim_norm(design_args, n_subj, parms, verbose = TRUE) %>%
     dplyr::mutate(Y_fit = Y - err)
 
   res <- c(t(kkl_mx[sample(nrow(kkl_mx), n_subj), ]))

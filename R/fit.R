@@ -157,12 +157,12 @@ gamm_2x2_v2 <- function(n_subj, n_obs, fixed, amx, amx_wt = NULL) {
 gen_logit_data <- function(n_subj, n_obs, fixed, downsample = 1L) {
   dargs <- list(ivs = c(A = 2), n_item = n_obs)
 
-  parms <- gen_pop(dargs, n_subj, var_range = c(0, .6))
+  parms <- funfact::gen_pop(dargs, n_subj, var_range = c(0, .6))
   parms$item_rfx[, ] <- 0
   parms$fixed[] <- fixed
   parms$err_var <- .1
 
-  dat <- sim_norm(dargs, n_subj, parms) %>%
+  dat <- funfact::sim_norm(dargs, n_subj, parms) %>%
     tibble::as_tibble()
 
   dat2 <- dat %>%
