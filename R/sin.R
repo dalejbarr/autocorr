@@ -43,7 +43,7 @@ sim_2x2_sin <- function(n_subj, n_obs, fixed,
                                                sin = .y * (sin(x + .x) / sd(sin(x))),
                                                err = rnorm(n_obs, 0, sqrt(err)),
                                                resid = sin + err))) %>%
-    tidyr::unnest()
+    tidyr::unnest(c(resid))
   
   my_design <- list(ivs = c(A = 2, B = 2),
 		    n_item = n_obs * 2L,
@@ -91,7 +91,7 @@ sim_2x2_sin <- function(n_subj, n_obs, fixed,
 		  tnum_r = (ts_r - (n_obs + 1) / 2) / (n_obs - 1),
 		  tnum_b = (ts_b - (n_obs + 1) / 2) / (n_obs - 1)) %>%
     with_dev_pred(c("A", "B")) %>%
-    select(subj_id, A, B, AA2, BB2, tnum_b, tnum_r, Y_acb, Y_acr,
+    dplyr::select(subj_id, A, B, AA2, BB2, tnum_b, tnum_r, Y_acb, Y_acr,
            ts_b, x_b, sin_b, err_b,
            ts_r, x_r, sin_r, err_r,
            Y_fit, fix_y, sre, phase, amp)
