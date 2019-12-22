@@ -18,11 +18,9 @@ Imports:
     mgcv,
     lme4,
     Matrix,
-    clusterGeneration,
-    MASS,
-    funfact (>= 0.300)
-RoxygenNote: 6.1.1
+    MASS
+RoxygenNote: 7.0.1
 Suggests: 
-    testthat
-Remotes:  
+    testthat (>= 2.1.0)
+Remotes: 
     dalejbarr/funfact
