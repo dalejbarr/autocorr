@@ -56,6 +56,6 @@
 #' 
 #' @export
 blst_quantiles <- function(q1 = .2, q2 = .8) {
-  mx <- as.matrix(blst_studies[, c(-1, -2)])
+  mx <- as.matrix(autocorr::blst_studies[, c(-1, -2)])
   apply(mx, 2, quantile, probs = c(q1, q2))
 }
