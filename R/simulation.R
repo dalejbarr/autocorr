@@ -1,4 +1,4 @@
-#' Simulate autocorrelated errors
+#' Simulate Autocorrelated Errors
 #'
 #' @param n_obs Number of simulated observations. Must be less than
 #'   275 (length of output from \code{link{stat_gp}} with \code{gamma

@@ -2,7 +2,7 @@
 % Please edit documentation in R/simulation.R
 \name{errsim}
 \alias{errsim}
-\title{Simulate autocorrelated errors}
+\title{Simulate Autocorrelated Errors}
 \usage{
 errsim(n_obs, version)
 }
@@ -36,5 +36,5 @@ A vector of simulated observations guaranteed to have a
   mean of 0 and a standard deviation of 1.
 }
 \description{
-Simulate autocorrelated errors
+Simulate Autocorrelated Errors
 }
