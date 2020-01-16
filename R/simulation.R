@@ -412,7 +412,7 @@ mcsim <- function(nmc,
                   rcorr_range = c(-.8, .8),
                   version = 0L,
                   outfile = sprintf(
-                    "ac_%05d_%03d_%03d_%0.2f_%0.2f_%0.2f_%0.2f_%0.2f_%0.2f_%0.2f_%d_%s_%s_%s.rds",
+                    "acs_%05d_%03d_%03d_%0.2f_%0.2f_%0.2f_%0.2f_%0.2f_%0.2f_%0.2f_%d_%s_%s_%s.rds",
                     nmc, n_subj, n_obs,
                     A, B, AB,
                     rint_range[1], rint_range[2],
