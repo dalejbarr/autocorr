@@ -15,10 +15,18 @@ consolidate_results <- function(inpath, outpath) {
   if (!dir.exists(outpath)) {
     stop("directory '", outpath, "' does not exist; you must create it.\n",
          "  dir.create('", outpath, "')")
+  } else {
+    if (length(dir(outpath) > 0L))
+      stop("directory '", outpath, "' must be empty.")
   }
   allfiles <- dir(inpath, "^ac.*\\.rds$")
   cfgs <- sapply(strsplit(allfiles, "_"), function(.x) {
-    paste(.x[3:12], collapse = "_")
+    case <- if (.x[1] == "ac") {
+              as.character(as.integer(.x[12]) - 1L)
+            } else {
+              .x[12]
+            }
+    paste(c(.x[3:11], case), collapse = "_")
   })
   files <- unique(cfgs)
   for (i in seq_along(files)) {
