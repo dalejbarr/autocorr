@@ -14,7 +14,7 @@ sim_2x2(
   rint = 0.5,
   rslp = 0.5,
   rcorr = 0.5,
-  version = 1,
+  version = 0L,
   verbose = FALSE
 )
 }
@@ -39,12 +39,15 @@ even integer.}
 
 \item{rcorr}{Random correlation.}
 
-\item{version}{Autocorrelation version (see \code{\link{errsim}}).}
+\item{version}{Autocorrelation case number; an integer between 0
+and 8 (see \code{\link{errsim}}).}
 
 \item{verbose}{Whether the data frame should GLM components.}
 }
 \value{
-A data frame with \code{n_subj * n_obs} rows and either 9 or 12 columns depending on whether verbose is TRUE or FALSE respectively.
+A data frame with \code{n_subj * n_obs} rows and either 9
+  or 12 columns depending on whether verbose is TRUE or FALSE
+  respectively.
 
 \describe{
 

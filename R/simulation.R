@@ -5,23 +5,23 @@
 #'   = 1}, \code{sigma = 1}.)
 #' 
 #' @param version An integer specifying the error autocorrelation
-#'   pattern; one of the following.
+#'   case number; one of the following.
 #' 
 #' \describe{
-#'   \item{1}{No autocorrelation (white noise).}
-#'   \item{2}{Sine wave with fixed amplitude, varying phase, and white noise.}
-#'   \item{3}{Sine wave with fixed phase, varying amplitude, and white noise.}
+#'   \item{0}{No autocorrelation (white noise).}
+#'   \item{1}{Sine wave with fixed amplitude, varying phase, and white noise.}
+#'   \item{2}{Sine wave with fixed phase, varying amplitude, and white noise.}
 #' 
-#'   \item{4}{Random walk, high frequency, generated using
+#'   \item{3}{Random walk, high frequency, generated using
 #'   \code{\link{stat_gp}} with gamma = 1 and sigma = 1.}
 #' 
-#'   \item{5}{Random walk, mid frequency, generated using
+#'   \item{4}{Random walk, mid frequency, generated using
 #'   \code{\link{stat_gp}} with gamma = 2 and sigma = 1.}
 #' 
-#'   \item{6}{Multi-scale: combination of 2 and 4.}
-#'   \item{7}{Multi-scale: combination of 2 and 5.}
-#'   \item{8}{Multi-scale: combination of 3 and 4.}
-#'   \item{9}{Multi-scale: combination of 3 and 5.}
+#'   \item{5}{Multi-scale: combination of 1 and 3.}
+#'   \item{6}{Multi-scale: combination of 1 and 4.}
+#'   \item{7}{Multi-scale: combination of 2 and 3.}
+#'   \item{8}{Multi-scale: combination of 2 and 4.}
 #' }
 #' 
 #' @return A vector of simulated observations guaranteed to have a
@@ -37,34 +37,34 @@ errsim <- function(n_obs, version) {
   version_int <- as.integer(version)
   if (is.na(version_int))
     stop("'version' must be an integer")
-  if ((version_int < 1L) || (version_int > 9L))
-    stop("'version' must be between 1 and 9")
+  if ((version_int < 0L) || (version_int > 8L))
+    stop("'version' must be between 0 and 8")
   
   x <- seq(-pi, pi, length.out = n_obs)
 
-  if (version == 1L) {
+  if (version == 0L) {
     ## white noise
     vv <- rnorm(n_obs)
-  } else if (version == 2L) {
+  } else if (version == 1L) {
     ## varying phase + white noise
     phase <- runif(1L, -pi, pi)
     vv <- ((sin(x + phase) / sd(sin(x + phase))) +
            rnorm(length(x), 0, sqrt(.1))) / sqrt(1.1)
     attr(vv, "phase") <- phase
-  } else if (version == 3L) {
+  } else if (version == 2L) {
     ## fixed phase, varying amp + white noise
     ampvar <- runif(1L, .2, .8)
     noisevar <- 1 - ampvar
     vv <- ((sin(x) / sd(sin(x))) * sqrt(ampvar)) +
       rnorm(n_obs, sd = sqrt(noisevar))
     attr(vv, "amp") <- ampvar
-  } else if (version == 4L) {
+  } else if (version == 3L) {
     ## random walk, high frequency
     vv <- stat_gp(1, 1)$GP[seq_len(n_obs)]
-  } else if (version == 5L) {
+  } else if (version == 4L) {
     ## random walk, mid frequency
     vv <- stat_gp(1, 2)$GP[seq_len(n_obs)]
-  } else if (version == 6L) {
+  } else if (version == 5L) {
     ## phase plus high freq random walk
     sinamp <- .9
     noise_lvl <- 1 - sinamp
@@ -76,7 +76,7 @@ errsim <- function(n_obs, version) {
     vv <- sqrt(sinamp) * sdat +
       sqrt(noise_lvl) * ndat
     attr(vv, "phase") <- phase
-  } else if (version == 7L) {
+  } else if (version == 6L) {
     ## phase plus mid freq random walk
     sinamp <- .9
     noise_lvl <- 1 - sinamp
@@ -88,7 +88,7 @@ errsim <- function(n_obs, version) {
     vv <- sqrt(sinamp) * sdat +
       sqrt(noise_lvl) * ndat
     attr(vv, "phase") <- phase
-  } else if (version == 8L) {
+  } else if (version == 7L) {
     ## varying amp plus high freq random walk
     ampvar <- runif(1L, .2, .8)
     noise_lvl <- 1 - ampvar
@@ -99,7 +99,7 @@ errsim <- function(n_obs, version) {
     vv <- sqrt(ampvar) * sdat +
       sqrt(noise_lvl) * ndat
     attr(vv, "amp") <- ampvar
-  } else if (version == 9L) {
+  } else if (version == 8L) {
     ## varying amp plus mid freq random walk
     ampvar <- runif(1L, .2, .8)
     noise_lvl <- 1 - ampvar
@@ -137,11 +137,14 @@ errsim <- function(n_obs, version) {
 #'
 #' @param rcorr Random correlation.
 #'
-#' @param version Autocorrelation version (see \code{\link{errsim}}).
+#' @param version Autocorrelation case number; an integer between 0
+#'   and 8 (see \code{\link{errsim}}).
 #'
 #' @param verbose Whether the data frame should GLM components.
 #' 
-#' @return A data frame with \code{n_subj * n_obs} rows and either 9 or 12 columns depending on whether verbose is TRUE or FALSE respectively.
+#' @return A data frame with \code{n_subj * n_obs} rows and either 9
+#'   or 12 columns depending on whether verbose is TRUE or FALSE
+#'   respectively.
 #' 
 #' \describe{
 #'
@@ -175,7 +178,7 @@ errsim <- function(n_obs, version) {
 sim_2x2 <- function(n_subj = 48, n_obs = 48,
                     int = 0, A = 0, B = 0, AB = 0,
                     rint = .5, rslp = .5, rcorr = .5,
-                    version = 1,
+                    version = 0L,
                     verbose = FALSE) {
 
   if ((n_subj %% 4L) || (n_subj <= 0L))
@@ -393,7 +396,7 @@ fit_2x2 <- function(dat, cs = FALSE, by_subj_fs = TRUE,
 #'
 #' @param rcorr_range Range of random correlation.
 #'
-#' @param version Autocorrelation version (see \code{\link{errsim}}).
+#' @param version Autocorrelation case number; an integer between 0 and 8 (see \code{\link{errsim}}).
 #'
 #' @param outfile Name of output file.
 #'
@@ -407,7 +410,7 @@ mcsim <- function(nmc,
                   rint_range = blst_quantiles()[, "subj_int"],
                   rslp_range = blst_quantiles()[, "subj_slp"],
                   rcorr_range = c(-.8, .8),
-                  version = 1L,
+                  version = 0L,
                   outfile = sprintf(
                     "ac_%05d_%03d_%03d_%0.2f_%0.2f_%0.2f_%0.2f_%0.2f_%0.2f_%0.2f_%d_%s_%s_%s.rds",
                     nmc, n_subj, n_obs,
@@ -421,7 +424,7 @@ mcsim <- function(nmc,
   
   tfile <- tempfile(fileext = ".csv")
                     
-  cs <- version %in% c(3L, 8L, 9L)
+  cs <- version %in% c(2L, 7L, 8L)
   append <- FALSE
 
   for (i in seq_len(nmc)) {
