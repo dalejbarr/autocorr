@@ -11,7 +11,8 @@ fit_2x2(
   dontfit = FALSE,
   m = NA,
   k = -1,
-  bam_args = NULL
+  bam_args = NULL,
+  fit_blocked = TRUE
 )
 }
 \arguments{
@@ -32,6 +33,9 @@ the model formulas. Used for debugging.}
 (specified in the \code{\link[mgcv:s]{mgcv::s()}} function).}
 
 \item{bam_args}{Any other arguments to be passed on to \code{\link[mgcv:bam]{mgcv::bam()}}.}
+
+\item{fit_blocked}{Whether to fit the blocked version in addition
+to the randomized version.}
 }
 \value{
 15x2x2 array with model statistics (or just the model

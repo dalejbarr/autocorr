@@ -278,6 +278,9 @@ sim_2x2 <- function(n_subj = 48, n_obs = 48,
 #'
 #' @param bam_args Any other arguments to be passed on to [mgcv::bam()].
 #'
+#' @param fit_blocked Whether to fit the blocked version in addition
+#'   to the randomized version.
+#'
 #' @details Fits four models using \link[mgcv]{bam}:
 #'
 #' \describe{
@@ -327,7 +330,8 @@ sim_2x2 <- function(n_subj = 48, n_obs = 48,
 #' 
 #' @export
 fit_2x2 <- function(dat, cs = FALSE, by_subj_fs = TRUE,
-                    dontfit = FALSE, m = NA, k = -1, bam_args = NULL) {
+                    dontfit = FALSE, m = NA, k = -1, bam_args = NULL,
+                    fit_blocked = TRUE) {
   ## function to extract model statistics
   mod_stats <- function(m_gamm, m_lmem) {
     mc <- anova(m_gamm, m_lmem)
@@ -386,20 +390,32 @@ fit_2x2 <- function(dat, cs = FALSE, by_subj_fs = TRUE,
     mod_rand <- do.call(getExportedValue("mgcv", "bam"),
                         args = c(list(formula = f_rand,
                                       data = dat), bam_args))
-    mod_block <- do.call(getExportedValue("mgcv", "bam"),
-                         args = c(list(formula = f_block,
-                                       data = dat), bam_args))
+    if (fit_blocked) {
+      mod_block <- do.call(getExportedValue("mgcv", "bam"),
+                           args = c(list(formula = f_block,
+                                         data = dat), bam_args))
+    }
 
     ## fit the LMEM models using mgcv::bam
     mod_rand_2 <- do.call(getExportedValue("mgcv", "bam"),
                           args = c(list(formula = f_rand2,
                                         data = dat), bam_args))
-    mod_block_2 <- do.call(getExportedValue("mgcv", "bam"),
-                          args = c(list(formula = f_block2,
-                                        data = dat), bam_args))
 
-    array(c(mod_stats(mod_rand, mod_rand_2),
-            mod_stats(mod_block, mod_block_2)),
+    ms_rand <- mod_stats(mod_rand, mod_rand_2)
+    
+    if (fit_blocked) {
+      mod_block_2 <- do.call(getExportedValue("mgcv", "bam"),
+                             args = c(list(formula = f_block2,
+                                           data = dat), bam_args))
+
+      ms_block <- mod_stats(mod_block, mod_block_2)
+    } else {
+      ms_block <- rep(NA_real_, length(ms_rand))
+      names(ms_block) <- names(ms_rand)
+    }
+    
+    array(c(ms_rand,
+            ms_block),
           dim = c(15, 2, 2),
           dimnames = list(parm = names(mod_stats(mod_rand, mod_rand_2))[1:15],
                           mod = c("GAMM", "LMEM"),
@@ -444,6 +460,9 @@ fit_2x2 <- function(dat, cs = FALSE, by_subj_fs = TRUE,
 #'
 #' @param bam_args List of additional arguments to be passed onto
 #'   [mgcv::bam()].
+#'
+#' @param fit_blocked Whether to fit the blocked version in addition
+#'   to the randomized version.
 #' 
 #' @param outfile Name of output file.
 #'
@@ -462,6 +481,7 @@ mcsim <- function(nmc,
                   m = NA,
                   k = -1,
                   bam_args = NULL,
+                  fit_blocked = TRUE,
                   outfile = sprintf(
                     "acs_%05d_%03d_%03d_%0.2f_%0.2f_%0.2f_%0.2f_%0.2f_%0.2f_%0.2f_%02d_%s_%s_%s.rds",
                     nmc, n_subj, n_obs,
@@ -493,7 +513,7 @@ mcsim <- function(nmc,
                    rint = rint, rslp = rslp, rcorr = rcorr,
                    version = version)
     res <- fit_2x2(dat = dat, cs = cs, m = m, k = k,
-                   bam_args = bam_args)
+                   bam_args = bam_args, fit_blocked = fit_blocked)
     vv <- c(rint, rslp, rcorr, res)
     readr::write_csv(as.data.frame(as.list(vv)),
                      tfile,
