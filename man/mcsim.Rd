@@ -16,7 +16,7 @@ mcsim(
   rcorr_range = c(-0.8, 0.8),
   version = 0L,
  
-    outfile = sprintf("ac_\%05d_\%03d_\%03d_\%0.2f_\%0.2f_\%0.2f_\%0.2f_\%0.2f_\%0.2f_\%0.2f_\%d_\%s_\%s_\%s.rds",
+    outfile = sprintf("acs_\%05d_\%03d_\%03d_\%0.2f_\%0.2f_\%0.2f_\%0.2f_\%0.2f_\%0.2f_\%0.2f_\%d_\%s_\%s_\%s.rds",
     nmc, n_subj, n_obs, A, B, AB, rint_range[1], rint_range[2], rslp_range[1],
     rslp_range[2], version, format(Sys.time(), "\%Y-\%m-\%d-\%H-\%M-\%S"),
     Sys.info()[["nodename"]], Sys.getpid())

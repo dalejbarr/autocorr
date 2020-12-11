@@ -4,7 +4,8 @@
 \name{blst_studies}
 \alias{blst_studies}
 \title{Sample of study random effect variances}
-\format{A tibble with 13 rows and 6 columns:
+\format{
+A tibble with 13 rows and 6 columns:
 \describe{
   \item{ID}{Numeric ID of the study (see \url{http://talklab.psy.gla.ac.uk/simgen/realdata.html}).}
   \item{Residual}{Estimate of the residual variance.}
@@ -12,7 +13,8 @@
   \item{subj_slp}{By-subject random slope variance as a proportion of the residual variance.}
   \item{item_int}{By-item random intercept variance as a proporition of the residual variance.}
   \item{item_slp}{By-item random slope variance as a proporition of the residual variance.}
-}}
+}
+}
 \usage{
 blst_studies
 }

@@ -4,7 +4,15 @@
 \alias{fit_2x2}
 \title{Fit models to 2x2 data with autocorrelated errors}
 \usage{
-fit_2x2(dat, cs = FALSE, by_subj_fs = TRUE, dontfit = FALSE)
+fit_2x2(
+  dat,
+  cs = FALSE,
+  by_subj_fs = TRUE,
+  dontfit = FALSE,
+  m = NA,
+  k = -1,
+  bam_args = NULL
+)
 }
 \arguments{
 \item{dat}{Data generated using \link{sim_2x2}.}
@@ -16,6 +24,14 @@ by-subject factor smooths) for the GAMM models?}
 
 \item{dontfit}{If \code{TRUE}, don't fit the models, just return
 the model formulas. Used for debugging.}
+
+\item{m}{The \code{m} parameter to be passed on to any factor
+smooths (specified in the \code\link[mgcv]{s} function).}
+
+\item{k}{The \code{k} parameter to be passed on to any factor
+smooths (specified in the \code\link[mgcv]{s} function).}
+
+\item{bam_args}{Any other arguments to be passed on to \code\link[mgcv]{bam}.}
 }
 \value{
 15x2x2 array with model statistics (or just the model
@@ -60,9 +76,9 @@ the model formulas. Used for debugging.}
 Fit models to 2x2 data with autocorrelated errors
 }
 \details{
-Fits four models: (1) A Generalized Additive Mixed Model
-  (GAMM) for the blocked DV (\code{Y_b}); (2) A Linear
-  Mixed-Effects Model (LMEM) for the blocked DV (\code{Y_b}); (3) A
-  GAMM for the randomized DV (\code{Y_r}); and (4) A LMEM for the
-  randomized DV (\code{Y_r}).
+Fits four models using \link[mgcv]{bam}:
+  (1) A Generalized Additive Mixed Model (GAMM) for the blocked DV (\code{Y_b});
+  (2) A Linear Mixed-Effects Model (LMEM) for the blocked DV (\code{Y_b});
+  (3) A GAMM for the randomized DV (\code{Y_r}); and
+  (4) A LMEM for the randomized DV (\code{Y_r}).
 }

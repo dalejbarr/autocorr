@@ -4,7 +4,9 @@
 \name{kkl_mx}
 \alias{kkl_mx}
 \title{Residuals from the KKL dataset (matrix format)}
-\format{A matrix with 86 rows and 800 columns. Each row is an individual subject, each column a trial in sequential order.}
+\format{
+A matrix with 86 rows and 800 columns. Each row is an individual subject, each column a trial in sequential order.
+}
 \source{
 The raw KKL data can be found at \url{https://github.com/dmbates/RePsychLing}
 }
