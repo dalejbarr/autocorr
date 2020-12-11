@@ -1,3 +1,23 @@
+#' This function written by R. Harald Baayen
+wiggle <- function(max_time, stddev=2, k=10, scaling=1) {
+  x = seq(0, 1, length = max_time)
+                                        # time points
+  sm <- mgcv::smooth.construct(mgcv::s(x, k = k, bs = "tp"),
+                               data = data.frame(x = x),
+                               knots = NULL)
+
+  b = rnorm(k, 0, stddev) * scaling  # simulate coefficients sampled from
+                                     # an N(0, stdev) distribution;
+  X <- b*t(sm$X)                     # weight the basis functions
+  f<-X[1,]*0
+                                        # and add them up
+  for (i in 1:k) {
+    f <- f + X[i,]
+  }
+  return(f)
+}
+
+
 #' Simulate Autocorrelated Errors
 #'
 #' @param n_obs Number of simulated observations. Must be less than
@@ -18,6 +38,7 @@
 #'     \item{6}{Multi-scale: combination of 1 and 4.}
 #'     \item{7}{Multi-scale: combination of 2 and 3.}
 #'     \item{8}{Multi-scale: combination of 2 and 4.}
+#'     \item{9}{GAMM: a wiggly function generated from a GAMM}
 #' }
 #' 
 #' @return A vector of simulated observations guaranteed to have a
@@ -33,8 +54,9 @@ errsim <- function(n_obs, version) {
   version_int <- as.integer(version)
   if (is.na(version_int))
     stop("'version' must be an integer")
-  if ((version_int < 0L) || (version_int > 8L))
-    stop("'version' must be between 0 and 8")
+  maxvers <- 9L
+  if ((version_int < 0L) || (version_int > maxvers))
+    stop("'version' must be between 0 and ", maxvers)
   
   x <- seq(-pi, pi, length.out = n_obs)
 
@@ -106,9 +128,13 @@ errsim <- function(n_obs, version) {
     vv <- sqrt(ampvar) * sdat +
       sqrt(noise_lvl) * ndat
     attr(vv, "amp") <- ampvar    
+  } else if (version == 9L) {
+    vv <- wiggle(n_obs)
+  } else {
+    stop("version '", version, "' not recognized")
   }
 
-  (vv - mean(vv)) / sd(vv - mean(vv))
+  (vv - mean(vv)) / sd(vv)
 }
 
 #' Simulate 2x2 data with autocorrelated errors
