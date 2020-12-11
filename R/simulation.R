@@ -1,4 +1,4 @@
-#' This function written by R. Harald Baayen
+## This function written by R. Harald Baayen
 wiggle <- function(max_time, stddev=2, k=10, scaling=1) {
   x = seq(0, 1, length = max_time)
                                         # time points
@@ -38,7 +38,8 @@ wiggle <- function(max_time, stddev=2, k=10, scaling=1) {
 #'     \item{6}{Multi-scale: combination of 1 and 4.}
 #'     \item{7}{Multi-scale: combination of 2 and 3.}
 #'     \item{8}{Multi-scale: combination of 2 and 4.}
-#'     \item{9}{GAMM: a wiggly function generated from a GAMM}
+#'     \item{9}{A wiggly function generated from [mgcv::smooth.construct()], no error}
+#'     \item{10}{A wiggly function generated from [mgcv::smooth.construct()], with 10\% white noise}
 #' }
 #' 
 #' @return A vector of simulated observations guaranteed to have a
@@ -54,7 +55,7 @@ errsim <- function(n_obs, version) {
   version_int <- as.integer(version)
   if (is.na(version_int))
     stop("'version' must be an integer")
-  maxvers <- 9L
+  maxvers <- 10L
   if ((version_int < 0L) || (version_int > maxvers))
     stop("'version' must be between 0 and ", maxvers)
   
@@ -130,6 +131,10 @@ errsim <- function(n_obs, version) {
     attr(vv, "amp") <- ampvar    
   } else if (version == 9L) {
     vv <- wiggle(n_obs)
+  } else if (version == 10L) {
+    vv1 <- wiggle(n_obs)
+    vv2 <- (vv1 - mean(vv1)) / sd(vv1)
+    vv <- vv2 + rnorm(n_obs, sd = sqrt(.1))
   } else {
     stop("version '", version, "' not recognized")
   }
