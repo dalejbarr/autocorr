@@ -39,7 +39,7 @@ wiggle <- function(max_time, stddev=2, k=10, scaling=1) {
 #'     \item{7}{Multi-scale: combination of 2 and 3.}
 #'     \item{8}{Multi-scale: combination of 2 and 4.}
 #'     \item{9}{A wiggly function generated from [mgcv::smooth.construct()], no error}
-#'     \item{10}{A wiggly function generated from [mgcv::smooth.construct()], with 10\% white noise}
+#'     \item{10}{A wiggly function generated from [mgcv::smooth.construct()], with 10 percent white noise}
 #' }
 #' 
 #' @return A vector of simulated observations guaranteed to have a
