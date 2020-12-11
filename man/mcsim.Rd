@@ -2,7 +2,7 @@
 % Please edit documentation in R/simulation.R
 \name{mcsim}
 \alias{mcsim}
-\title{Monte Carlo Simulation of Analysis of Autocorrelated Data}
+\title{Monte Carlo Simulation of Data Analysis with Trial-by-Trial Variation}
 \usage{
 mcsim(
   nmc,
@@ -15,8 +15,12 @@ mcsim(
   rslp_range = blst_quantiles()[, "subj_slp"],
   rcorr_range = c(-0.8, 0.8),
   version = 0L,
+  os_always = FALSE,
+  m = NA,
+  k = -1,
+  bam_args = NULL,
  
-    outfile = sprintf("acs_\%05d_\%03d_\%03d_\%0.2f_\%0.2f_\%0.2f_\%0.2f_\%0.2f_\%0.2f_\%0.2f_\%d_\%s_\%s_\%s.rds",
+    outfile = sprintf("acs_\%05d_\%03d_\%03d_\%0.2f_\%0.2f_\%0.2f_\%0.2f_\%0.2f_\%0.2f_\%0.2f_\%02d_\%s_\%s_\%s.rds",
     nmc, n_subj, n_obs, A, B, AB, rint_range[1], rint_range[2], rslp_range[1],
     rslp_range[2], version, format(Sys.time(), "\%Y-\%m-\%d-\%H-\%M-\%S"),
     Sys.info()[["nodename"]], Sys.getpid())
@@ -45,6 +49,18 @@ even integer.}
 
 \item{version}{Autocorrelation case number; an integer between 0 and 8 (see \link{errsim}).}
 
+\item{os_always}{Whether to always fit an overall smooth, or only
+for \code{\link[=errsim]{errsim()}} versions 2, 7, and 8.}
+
+\item{m}{The \code{m} parameter to be passed on to any factor smooths
+(specified in the \code{\link[mgcv:s]{mgcv::s()}} function).}
+
+\item{k}{The \code{k} parameter to be passed on to any factor smooths
+(specified in the \code{\link[mgcv:s]{mgcv::s()}} function).}
+
+\item{bam_args}{List of additional arguments to be passed onto
+\code{\link[mgcv:bam]{mgcv::bam()}}.}
+
 \item{outfile}{Name of output file.}
 
 \item{int}{Intercept.}
@@ -53,5 +69,5 @@ even integer.}
 Returns NULL.
 }
 \description{
-Monte Carlo Simulation of Analysis of Autocorrelated Data
+Monte Carlo Simulation of Data Analysis with Trial-by-Trial Variation
 }

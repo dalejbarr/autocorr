@@ -376,7 +376,7 @@ fit_2x2 <- function(dat, cs = FALSE, by_subj_fs = TRUE,
   }
 }
 
-#' Monte Carlo Simulation of Analysis of Autocorrelated Data
+#' Monte Carlo Simulation of Data Analysis with Trial-by-Trial Variation
 #'
 #' @param nmc Number of Monte Carlo runs.
 #' 
@@ -402,6 +402,18 @@ fit_2x2 <- function(dat, cs = FALSE, by_subj_fs = TRUE,
 #'
 #' @param version Autocorrelation case number; an integer between 0 and 8 (see \link{errsim}).
 #'
+#' @param os_always Whether to always fit an overall smooth, or only
+#'   for [errsim()] versions 2, 7, and 8.
+#' 
+#' @param m The `m` parameter to be passed on to any factor smooths
+#'   (specified in the [mgcv::s()] function).
+#'
+#' @param k The `k` parameter to be passed on to any factor smooths
+#'   (specified in the [mgcv::s()] function).
+#'
+#' @param bam_args List of additional arguments to be passed onto
+#'   [mgcv::bam()].
+#' 
 #' @param outfile Name of output file.
 #'
 #' @return Returns NULL.
@@ -415,8 +427,12 @@ mcsim <- function(nmc,
                   rslp_range = blst_quantiles()[, "subj_slp"],
                   rcorr_range = c(-.8, .8),
                   version = 0L,
+                  os_always = FALSE,
+                  m = NA,
+                  k = -1,
+                  bam_args = NULL,
                   outfile = sprintf(
-                    "acs_%05d_%03d_%03d_%0.2f_%0.2f_%0.2f_%0.2f_%0.2f_%0.2f_%0.2f_%d_%s_%s_%s.rds",
+                    "acs_%05d_%03d_%03d_%0.2f_%0.2f_%0.2f_%0.2f_%0.2f_%0.2f_%0.2f_%02d_%s_%s_%s.rds",
                     nmc, n_subj, n_obs,
                     A, B, AB,
                     rint_range[1], rint_range[2],
@@ -428,7 +444,12 @@ mcsim <- function(nmc,
   
   tfile <- tempfile(fileext = ".csv")
                     
-  cs <- version %in% c(2L, 7L, 8L)
+  cs <- if (os_always) {
+          TRUE
+        } else {
+          version %in% c(2L, 7L, 8L)
+        }
+  
   append <- FALSE
 
   for (i in seq_len(nmc)) {
@@ -436,10 +457,12 @@ mcsim <- function(nmc,
     rslp <- runif(1, rslp_range[1], rslp_range[2])
     rcorr <- runif(1, rcorr_range[1], rcorr_range[2])
 
-    dat <- sim_2x2(n_subj, n_obs,
-                   0, A, B, AB,
-                   rint, rslp, rcorr, version)
-    res <- fit_2x2(dat, cs)
+    dat <- sim_2x2(n_subj = n_subj, n_obs = n_obs,
+                   int = 0, A = A, B = B, AB = AB,
+                   rint = rint, rslp = rslp, rcorr = rcorr,
+                   version = version)
+    res <- fit_2x2(dat = dat, cs = cs, m = m, k = k,
+                   bam_args = bam_args)
     vv <- c(rint, rslp, rcorr, res)
     readr::write_csv(as.data.frame(as.list(vv)),
                      tfile,
