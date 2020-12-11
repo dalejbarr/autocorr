@@ -1,7 +1,10 @@
 Package: autocorr
 Title: Autocorrelation toolkit for multilevel data
-Version: 0.1.1.9000
-Authors@R: person("Dale", "Barr", email = "dalejbarr@protonmail.com", role = c("aut", "cre"))
+Version: 0.2.1.9000
+Authors@R: c(person("Dale", "Barr", email = "dalejbarr@protonmail.com",
+                    role = c("aut", "cre")),
+	     person("Rüdiger", "Thul", email = "ruediger.thul@nottingham.ac.uk",
+                    role = c("aut")))
 Description: Functions for exploring and simulating autocorrelations phenomena in randomized experiments.
 Depends: R (>= 3.4.4)
 License: GPL-3

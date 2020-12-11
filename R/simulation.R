@@ -256,11 +256,19 @@ sim_2x2 <- function(n_subj = 48, n_obs = 48,
 #' @param dontfit If \code{TRUE}, don't fit the models, just return
 #'   the model formulas. Used for debugging.
 #'
-#' @details Fits four models: (1) A Generalized Additive Mixed Model
-#'   (GAMM) for the blocked DV (\code{Y_b}); (2) A Linear
-#'   Mixed-Effects Model (LMEM) for the blocked DV (\code{Y_b}); (3) A
-#'   GAMM for the randomized DV (\code{Y_r}); and (4) A LMEM for the
-#'   randomized DV (\code{Y_r}).
+#' @param m The \code{m} parameter to be passed on to any factor
+#'   smooths (specified in the \code\link[mgcv]{s} function).
+#'
+#' @param k The \code{k} parameter to be passed on to any factor
+#'   smooths (specified in the \code\link[mgcv]{s} function).
+#'
+#' @param bam_args Any other arguments to be passed on to \code\link[mgcv]{bam}.
+#'
+#' @details Fits four models using \link[mgcv]{bam}:
+#'   (1) A Generalized Additive Mixed Model (GAMM) for the blocked DV (\code{Y_b});
+#'   (2) A Linear Mixed-Effects Model (LMEM) for the blocked DV (\code{Y_b});
+#'   (3) A GAMM for the randomized DV (\code{Y_r}); and
+#'   (4) A LMEM for the randomized DV (\code{Y_r}).
 #' 
 #' @return 15x2x2 array with model statistics (or just the model
 #'   formulas if \code{dontfit} is \code{TRUE}). Second dimension is
@@ -302,7 +310,7 @@ sim_2x2 <- function(n_subj = 48, n_obs = 48,
 #' 
 #' @export
 fit_2x2 <- function(dat, cs = FALSE, by_subj_fs = TRUE,
-                    dontfit = FALSE) {
+                    dontfit = FALSE, m = NA, k = -1, bam_args = NULL) {
   ## function to extract model statistics
   mod_stats <- function(m_gamm, m_lmem) {
     mc <- anova(m_gamm, m_lmem)
@@ -330,20 +338,22 @@ fit_2x2 <- function(dat, cs = FALSE, by_subj_fs = TRUE,
   form_rhs_b <- form_rhs # blocked version
   
   form_rhs_no_gamm <- paste0(form_rhs,
-                                   " + \n   s(subj_id, bs = \"re\")")
+                             " + \n   s(subj_id, bs = \"re\")")
   
   if (cs) {
     form_rhs <- paste0(form_rhs,
-                             " + \n   s(tnum_r, bs = \"tp\")")
+                       " + \n   s(tnum_r, bs = \"tp\")")
     form_rhs_b <- paste0(form_rhs_b,
-                             " + \n   s(tnum_b, bs = \"tp\")")
+                         " + \n   s(tnum_b, bs = \"tp\")")
   }
 
   if (by_subj_fs) {
     form_rhs <- paste(form_rhs,
-                            " + \n   s(tnum_r, subj_id, bs = \"fs\")")
+                      sprintf(" + \n   s(tnum_r, subj_id, k = %d, m = %d, bs = \"fs\")",
+                              k, m))
     form_rhs_b <- paste(form_rhs_b,
-                              " + \n   s(tnum_b, subj_id, bs = \"fs\")")
+                        sprintf(" + \n   s(tnum_b, subj_id, k = %d, m = %d, bs = \"fs\")",
+                                k, m))
   }
 
   f_rand <- as.formula(paste0("Y_r ~", form_rhs))
@@ -356,12 +366,20 @@ fit_2x2 <- function(dat, cs = FALSE, by_subj_fs = TRUE,
          blocked = list(GAM = f_block, LMM = f_block2))
   } else {  
     ## fit the GAMM models using mgcv::bam
-    mod_rand <- mgcv::bam(f_rand, data = dat)
-    mod_block <- mgcv::bam(f_block, data = dat)
+    mod_rand <- do.call(getExportedValue("mgcv", "bam"),
+                        args = c(list(formula = f_rand,
+                                      data = dat), bam_args))
+    mod_block <- do.call(getExportedValue("mgcv", "bam"),
+                         args = c(list(formula = f_block,
+                                       data = dat), bam_args))
 
     ## fit the LMEM models using mgcv::bam
-    mod_rand_2 <- mgcv::bam(f_rand2, data = dat)
-    mod_block_2 <- mgcv::bam(f_block2, data = dat)
+    mod_rand_2 <- do.call(getExportedValue("mgcv", "bam"),
+                          args = c(list(formula = f_rand2,
+                                        data = dat), bam_args))
+    mod_block_2 <- do.call(getExportedValue("mgcv", "bam"),
+                          args = c(list(formula = f_block2,
+                                        data = dat), bam_args))
 
     array(c(mod_stats(mod_rand, mod_rand_2),
             mod_stats(mod_block, mod_block_2)),
