@@ -43,7 +43,7 @@ even integer.}
 
 \item{rcorr_range}{Range of random correlation.}
 
-\item{version}{Autocorrelation case number; an integer between 0 and 8 (see \code{\link{errsim}}).}
+\item{version}{Autocorrelation case number; an integer between 0 and 8 (see \link{errsim}).}
 
 \item{outfile}{Name of output file.}
 

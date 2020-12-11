@@ -7,9 +7,9 @@
 \format{
 A data frame with 68800 rows and 3 variables:
 \describe{
-  \item{subj}{subject identifier}
-  \item{trial}{trial number (1-800)}
-  \item{resid}{the residual}
+\item{subj}{subject identifier}
+\item{trial}{trial number (1-800)}
+\item{resid}{the residual}
 }
 }
 \source{

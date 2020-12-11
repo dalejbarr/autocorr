@@ -1,27 +1,23 @@
 #' Simulate Autocorrelated Errors
 #'
 #' @param n_obs Number of simulated observations. Must be less than
-#'   275 (length of output from \code{link{stat_gp}} with \code{gamma
-#'   = 1}, \code{sigma = 1}.)
+#'   275 (length of output from [stat_gp()] with `gamma = 1`, `sigma = 1`.)
 #' 
 #' @param version An integer specifying the error autocorrelation
 #'   case number; one of the following.
 #' 
-#' \describe{
-#'   \item{0}{No autocorrelation (white noise).}
-#'   \item{1}{Sine wave with fixed amplitude, varying phase, and white noise.}
-#'   \item{2}{Sine wave with fixed phase, varying amplitude, and white noise.}
-#' 
-#'   \item{3}{Random walk, high frequency, generated using
-#'   \code{\link{stat_gp}} with gamma = 1 and sigma = 1.}
-#' 
-#'   \item{4}{Random walk, mid frequency, generated using
-#'   \code{\link{stat_gp}} with gamma = 2 and sigma = 1.}
-#' 
-#'   \item{5}{Multi-scale: combination of 1 and 3.}
-#'   \item{6}{Multi-scale: combination of 1 and 4.}
-#'   \item{7}{Multi-scale: combination of 2 and 3.}
-#'   \item{8}{Multi-scale: combination of 2 and 4.}
+#'   \describe{
+#'     \item{0}{No autocorrelation (white noise).}
+#'     \item{1}{Sine wave with fixed amplitude, varying phase, and white noise.}
+#'     \item{2}{Sine wave with fixed phase, varying amplitude, and white noise.}
+#'     \item{3}{Random walk, high frequency, generated using
+#'       [stat_gp()] with gamma = 1 and sigma = 1.}
+#'     \item{4}{Random walk, mid frequency, generated using
+#'       [stat_gp()] with gamma = 2 and sigma = 1.}
+#'     \item{5}{Multi-scale: combination of 1 and 3.}
+#'     \item{6}{Multi-scale: combination of 1 and 4.}
+#'     \item{7}{Multi-scale: combination of 2 and 3.}
+#'     \item{8}{Multi-scale: combination of 2 and 4.}
 #' }
 #' 
 #' @return A vector of simulated observations guaranteed to have a
@@ -146,32 +142,19 @@ errsim <- function(n_obs, version) {
 #'   or 12 columns depending on whether verbose is TRUE or FALSE
 #'   respectively.
 #' 
-#' \describe{
-#'
-#' \item{\code{subj_id}}{}
-#'
-#' \item{\code{A}}{Level of within-subject factor A.}
-#'
-#' \item{\code{B}}{Level of between-subject factor B.}
-#'
-#' \item{\code{A_c}}{Deviation-coded predictor for A.}
-#'
-#' \item{\code{B_c}}{Deviation-coded predictor for B.}
-#'
-#' \item{\code{tnum_r}}{Trial number for the fully randomized version.}
-#'
-#' \item{\code{tnum_b}}{Trial number for the blocked version.}
-#'
-#' \item{\code{Y_r}}{Response variable for the fully randomized version.}
-#'
-#' \item{\code{Y_b}}{Response variable for the fully blocked version.}
-#'
-#' \item{\code{rint}}{Random intercept effect (verbose mode only.)}
-#'
-#' \item{\code{rslp}}{Random slope effect (verbose mode only).}
-#'
-#' \item{\code{Y_fit}}{Fitted value (all effects except residual.)}
-#' 
+#'   \describe{
+#'     \item{\code{subj_id}}{}
+#'     \item{\code{A}}{Level of within-subject factor A.}
+#'     \item{\code{B}}{Level of between-subject factor B.}
+#'     \item{\code{A_c}}{Deviation-coded predictor for A.}
+#'     \item{\code{B_c}}{Deviation-coded predictor for B.}
+#'     \item{\code{tnum_r}}{Trial number for the fully randomized version.}
+#'     \item{\code{tnum_b}}{Trial number for the blocked version.}
+#'     \item{\code{Y_r}}{Response variable for the fully randomized version.}
+#'     \item{\code{Y_b}}{Response variable for the fully blocked version.}
+#'     \item{\code{rint}}{Random intercept effect (verbose mode only.)}
+#'     \item{\code{rslp}}{Random slope effect (verbose mode only).}
+#'     \item{\code{Y_fit}}{Fitted value (all effects except residual.)}
 #' }
 #'
 #' @export
@@ -246,7 +229,7 @@ sim_2x2 <- function(n_subj = 48, n_obs = 48,
 
 #' Fit models to 2x2 data with autocorrelated errors
 #'
-#' @param dat Data generated using \link{sim_2x2}.
+#' @param dat Data generated using [sim_2x2()].
 #' 
 #' @param cs Fit smooths as main effect of trial (in addition to
 #'   by-subject factor smooths) for the GAMM models?
@@ -256,56 +239,59 @@ sim_2x2 <- function(n_subj = 48, n_obs = 48,
 #' @param dontfit If \code{TRUE}, don't fit the models, just return
 #'   the model formulas. Used for debugging.
 #'
-#' @param m The \code{m} parameter to be passed on to any factor
-#'   smooths (specified in the \code\link[mgcv]{s} function).
+#' @param m The `m` parameter to be passed on to any factor smooths
+#'   (specified in the [mgcv::s()] function).
 #'
-#' @param k The \code{k} parameter to be passed on to any factor
-#'   smooths (specified in the \code\link[mgcv]{s} function).
+#' @param k The `k` parameter to be passed on to any factor smooths
+#'   (specified in the [mgcv::s()] function).
 #'
-#' @param bam_args Any other arguments to be passed on to \code\link[mgcv]{bam}.
+#' @param bam_args Any other arguments to be passed on to [mgcv::bam()].
 #'
 #' @details Fits four models using \link[mgcv]{bam}:
-#'   (1) A Generalized Additive Mixed Model (GAMM) for the blocked DV (\code{Y_b});
-#'   (2) A Linear Mixed-Effects Model (LMEM) for the blocked DV (\code{Y_b});
-#'   (3) A GAMM for the randomized DV (\code{Y_r}); and
-#'   (4) A LMEM for the randomized DV (\code{Y_r}).
+#'
+#' \describe{
+#'   \item{1}{A Generalized Additive Mixed Model (GAMM) for the blocked DV (`Y_b`);}
+#'   \item{2}{A Linear Mixed-Effects Model (LMEM) for the blocked DV (`Y_b`);}
+#'   \item{3}{A GAMM for the randomized DV (`Y_r`); and}
+#'   \item{4}{A LMEM for the randomized DV (`Y_r`).}
+#' }
 #' 
 #' @return 15x2x2 array with model statistics (or just the model
-#'   formulas if \code{dontfit} is \code{TRUE}). Second dimension is
+#'   formulas if `dontfit` is `TRUE`). Second dimension is
 #'   GAMM or LMEM, third is randomized or blocked, and first dimension
 #'   is as follows.
 #'
 #' \describe{
 #' 
-#'   \item{\code{e_int}}{Estimated intercept.}
+#'   \item{`e_int`}{Estimated intercept.}
 #'
-#'   \item{\code{e_A}}{Estimated main effect of A.}
+#'   \item{`e_A`}{Estimated main effect of A.}
 #'
-#'   \item{\code{e_B}}{Estimated main effect of B.}
+#'   \item{`e_B`}{Estimated main effect of B.}
 #'
-#'   \item{\code{e_AB}}{Estimated AB interaction.}
+#'   \item{`e_AB`}{Estimated AB interaction.}
 #'
-#'   \item{\code{se_int}}{Standard error for the intercept.}
+#'   \item{`se_int`}{Standard error for the intercept.}
 #'
-#'   \item{\code{se_A}}{Standard error for A.}
+#'   \item{`se_A`}{Standard error for A.}
 #'
-#'   \item{\code{se_B}}{Standard error for B.}
+#'   \item{`se_B`}{Standard error for B.}
 #'
-#'   \item{\code{se_AB}}{Standard error for AB.}
+#'   \item{`se_AB`}{Standard error for AB.}
 #'
-#'   \item{\code{p_int}}{P-value for the intercept.}
+#'   \item{`p_int`}{P-value for the intercept.}
 #'
-#'   \item{\code{p_A}}{P-value for the main effect of A.}
+#'   \item{`p_A`}{P-value for the main effect of A.}
 #'
-#'   \item{\code{p_B}}{P-value for the main effect of B.}
+#'   \item{`p_B`}{P-value for the main effect of B.}
 #' 
-#'   \item{\code{p_AB}}{P-value for the AB interaction.}
+#'   \item{`p_AB`}{P-value for the AB interaction.}
 #'
-#'   \item{\code{AIC}}{Akaike Information Criterion for the model.}
+#'   \item{`AIC`}{Akaike Information Criterion for the model.}
 #'
-#'   \item{\code{resid_df}}{Residual degrees of freedom.}
+#'   \item{`resid_df`}{Residual degrees of freedom.}
 #'
-#'   \item{\code{resid_dev}}{Residual deviance.}
+#'   \item{`resid_dev`}{Residual deviance.}
 #' }
 #' 
 #' @export
@@ -414,7 +400,7 @@ fit_2x2 <- function(dat, cs = FALSE, by_subj_fs = TRUE,
 #'
 #' @param rcorr_range Range of random correlation.
 #'
-#' @param version Autocorrelation case number; an integer between 0 and 8 (see \code{\link{errsim}}).
+#' @param version Autocorrelation case number; an integer between 0 and 8 (see \link{errsim}).
 #'
 #' @param outfile Name of output file.
 #'
