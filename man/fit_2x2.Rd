@@ -32,7 +32,8 @@ the model formulas. Used for debugging.}
 \item{k}{The \code{k} parameter to be passed on to any factor smooths
 (specified in the \code{\link[mgcv:s]{mgcv::s()}} function).}
 
-\item{bam_args}{Any other arguments to be passed on to \code{\link[mgcv:bam]{mgcv::bam()}}.}
+\item{bam_args}{Any other arguments to be passed on to
+\code{\link[mgcv:bam]{mgcv::bam()}} (for the fitting of the GAMM models only.)}
 
 \item{fit_blocked}{Whether to fit the blocked version in addition
 to the randomized version.}

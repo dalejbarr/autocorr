@@ -276,7 +276,8 @@ sim_2x2 <- function(n_subj = 48, n_obs = 48,
 #' @param k The `k` parameter to be passed on to any factor smooths
 #'   (specified in the [mgcv::s()] function).
 #'
-#' @param bam_args Any other arguments to be passed on to [mgcv::bam()].
+#' @param bam_args Any other arguments to be passed on to
+#'   [mgcv::bam()] (for the fitting of the GAMM models only.)
 #'
 #' @param fit_blocked Whether to fit the blocked version in addition
 #'   to the randomized version.
@@ -382,6 +383,11 @@ fit_2x2 <- function(dat, cs = FALSE, by_subj_fs = TRUE,
   f_block <- as.formula(paste0("Y_b ~", form_rhs_b))
   f_block2 <- as.formula(paste0("Y_b ~", form_rhs_no_gamm))
 
+  dat_r <- dat[order(dat$subj_id, dat$tnum_r), ]
+  dat_r[["first"]] <- dat_r[["tnum_r"]] == 1L
+  dat_b <- dat[order(dat$subj_id, dat$tnum_b), ]
+  dat_b[["first"]] <- dat_b[["tnum_b"]] == 1L
+  
   if (dontfit) {
     list(randomized = list(GAM = f_rand, LMM = f_rand2),
          blocked = list(GAM = f_block, LMM = f_block2))
@@ -389,24 +395,26 @@ fit_2x2 <- function(dat, cs = FALSE, by_subj_fs = TRUE,
     ## fit the GAMM models using mgcv::bam
     mod_rand <- do.call(getExportedValue("mgcv", "bam"),
                         args = c(list(formula = f_rand,
-                                      data = dat), bam_args))
+                                      data = dat_r,
+                                      AR.start = dat_r$first), bam_args))
     if (fit_blocked) {
       mod_block <- do.call(getExportedValue("mgcv", "bam"),
                            args = c(list(formula = f_block,
-                                         data = dat), bam_args))
+                                         data = dat_b,
+                                         AR.start = dat_b$first), bam_args))
     }
 
     ## fit the LMEM models using mgcv::bam
     mod_rand_2 <- do.call(getExportedValue("mgcv", "bam"),
-                          args = c(list(formula = f_rand2,
-                                        data = dat), bam_args))
+                          args = list(formula = f_rand2,
+                                      data = dat_r))
 
     ms_rand <- mod_stats(mod_rand, mod_rand_2)
     
     if (fit_blocked) {
       mod_block_2 <- do.call(getExportedValue("mgcv", "bam"),
-                             args = c(list(formula = f_block2,
-                                           data = dat), bam_args))
+                             args = list(formula = f_block2,
+                                         data = dat_b))
 
       ms_block <- mod_stats(mod_block, mod_block_2)
     } else {
