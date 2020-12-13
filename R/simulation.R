@@ -383,15 +383,16 @@ fit_2x2 <- function(dat, cs = FALSE, by_subj_fs = TRUE,
   f_block <- as.formula(paste0("Y_b ~", form_rhs_b))
   f_block2 <- as.formula(paste0("Y_b ~", form_rhs_no_gamm))
 
-  dat_r <- dat[order(dat$subj_id, dat$tnum_r), ]
-  dat_r[["first"]] <- dat_r[["tnum_r"]] == 1L
-  dat_b <- dat[order(dat$subj_id, dat$tnum_b), ]
-  dat_b[["first"]] <- dat_b[["tnum_b"]] == 1L
-  
   if (dontfit) {
     list(randomized = list(GAM = f_rand, LMM = f_rand2),
          blocked = list(GAM = f_block, LMM = f_block2))
-  } else {  
+  } else {
+
+    dat_r <- dat[order(dat$subj_id, dat$tnum_r), ]
+    dat_r[["first"]] <- dat_r[["tnum_r"]] == 1L
+    dat_b <- dat[order(dat$subj_id, dat$tnum_b), ]
+    dat_b[["first"]] <- dat_b[["tnum_b"]] == 1L
+      
     ## fit the GAMM models using mgcv::bam
     mod_rand <- do.call(getExportedValue("mgcv", "bam"),
                         args = c(list(formula = f_rand,
