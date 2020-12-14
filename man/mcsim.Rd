@@ -20,6 +20,7 @@ mcsim(
   k = -1,
   bam_args = NULL,
   fit_blocked = TRUE,
+  fit_lmem = TRUE,
  
     outfile = sprintf("acs_\%05d_\%03d_\%03d_\%0.2f_\%0.2f_\%0.2f_\%0.2f_\%0.2f_\%0.2f_\%0.2f_\%02d_\%s_\%s_\%s.rds",
     nmc, n_subj, n_obs, A, B, AB, rint_range[1], rint_range[2], rslp_range[1],
@@ -64,6 +65,8 @@ for \code{\link[=errsim]{errsim()}} versions 2, 7, and 8.}
 
 \item{fit_blocked}{Whether to fit the blocked version in addition
 to the randomized version.}
+
+\item{fit_lmem}{Whether to fit the LMEM in addition to the GAMM.}
 
 \item{outfile}{Name of output file.}
 

@@ -282,6 +282,8 @@ sim_2x2 <- function(n_subj = 48, n_obs = 48,
 #' @param fit_blocked Whether to fit the blocked version in addition
 #'   to the randomized version.
 #'
+#' @param fit_lmem Whether to fit the LMEM in addition to the GAMM.
+#'
 #' @details Fits four models using \link[mgcv]{bam}:
 #'
 #' \describe{
@@ -332,22 +334,37 @@ sim_2x2 <- function(n_subj = 48, n_obs = 48,
 #' @export
 fit_2x2 <- function(dat, cs = FALSE, by_subj_fs = TRUE,
                     dontfit = FALSE, m = NA, k = -1, bam_args = NULL,
-                    fit_blocked = TRUE) {
+                    fit_blocked = TRUE, fit_lmem = TRUE) {
   ## function to extract model statistics
-  mod_stats <- function(m_gamm, m_lmem) {
-    mc <- anova(m_gamm, m_lmem)
+  mod_stats <- function(m_gamm, m_lmem = NULL) {
+    if (!is.null(m_lmem)) {
+      mc <- anova(m_gamm, m_lmem)
+      rdf_g <- mc[["Resid. Df"]][1]
+      rdev_g <- mc[["Resid. Dev"]][1]
+      rdf_l <- mc[["Resid. Df"]][2]
+      rdev_l <- mc[["Resid. Dev"]][2]
+      cf_l <- coef(m_lmem)[1:4]
+      se_l <- sqrt(diag(vcov(m_lmem)[1:4, 1:4]))
+      m_lmem_s <- summary(m_lmem)
+      p_l <- m_lmem_s[["p.table"]][, "Pr(>|t|)"]
+      aic_l <- AIC(m_lmem)
+    } else {
+      rdf_g <- rdev_g <- rdf_l <- rdev_l <- aic_l <- NA_real_
+      cf_l <- se_l <- p_l <- rep(NA_real_, 4)
+    }
     m_gamm_s <- summary(m_gamm)
-    m_lmem_s <- summary(m_lmem)
     v <- c(coef(m_gamm)[1:4],
            sqrt(diag(vcov(m_gamm)[1:4, 1:4])),
            m_gamm_s[["p.table"]][, "Pr(>|t|)"],
-           AIC(m_gamm), mc[["Resid. Df"]][1],
-           mc[["Resid. Dev"]][1],
-           coef(m_lmem)[1:4],
-           sqrt(diag(vcov(m_lmem)[1:4, 1:4])),
-           m_lmem_s[["p.table"]][, "Pr(>|t|)"],
-           AIC(m_lmem), mc[["Resid. Df"]][2],
-           mc[["Resid. Dev"]][2])
+           AIC(m_gamm),
+           rdf_g,
+           rdev_g,
+           cf_l, ## lmem stats start here
+           se_l,
+           p_l,
+           aic_l,
+           rdf_l,
+           rdev_l)
     vn <- c("e_int", "e_A", "e_B", "e_AB",
             "se_int", "se_A", "se_B", "se_AB",
             "p_int", "p_A", "p_B", "p_AB",
@@ -379,9 +396,9 @@ fit_2x2 <- function(dat, cs = FALSE, by_subj_fs = TRUE,
   }
 
   f_rand <- as.formula(paste0("Y_r ~", form_rhs))
-  f_rand2 <- as.formula(paste0("Y_r ~", form_rhs_no_gamm))
+  f_rand2 <- as.formula(paste0("Y_r ~", form_rhs_no_gamm)) ## lmem
   f_block <- as.formula(paste0("Y_b ~", form_rhs_b))
-  f_block2 <- as.formula(paste0("Y_b ~", form_rhs_no_gamm))
+  f_block2 <- as.formula(paste0("Y_b ~", form_rhs_no_gamm)) ## lmem
 
   if (dontfit) {
     list(randomized = list(GAM = f_rand, LMM = f_rand2),
@@ -398,35 +415,41 @@ fit_2x2 <- function(dat, cs = FALSE, by_subj_fs = TRUE,
                         args = c(list(formula = f_rand,
                                       data = dat_r,
                                       AR.start = dat_r$first), bam_args))
+
+    ms_rand <- mod_stats(mod_rand, NULL)
+    
     if (fit_blocked) {
       mod_block <- do.call(getExportedValue("mgcv", "bam"),
                            args = c(list(formula = f_block,
                                          data = dat_b,
                                          AR.start = dat_b$first), bam_args))
-    }
-
-    ## fit the LMEM models using mgcv::bam
-    mod_rand_2 <- do.call(getExportedValue("mgcv", "bam"),
-                          args = list(formula = f_rand2,
-                                      data = dat_r))
-
-    ms_rand <- mod_stats(mod_rand, mod_rand_2)
-    
-    if (fit_blocked) {
-      mod_block_2 <- do.call(getExportedValue("mgcv", "bam"),
-                             args = list(formula = f_block2,
-                                         data = dat_b))
-
-      ms_block <- mod_stats(mod_block, mod_block_2)
+      ms_block <- mod_stats(mod_block, NULL)
     } else {
       ms_block <- rep(NA_real_, length(ms_rand))
       names(ms_block) <- names(ms_rand)
     }
+
+    if (fit_lmem) {
+      ## fit the LMEM models using mgcv::bam
+      mod_rand_2 <- do.call(getExportedValue("mgcv", "bam"),
+                            args = list(formula = f_rand2,
+                                        data = dat_r))
+
+      ms_rand <- mod_stats(mod_rand, mod_rand_2)
     
+      if (fit_blocked) {
+        mod_block_2 <- do.call(getExportedValue("mgcv", "bam"),
+                               args = list(formula = f_block2,
+                                           data = dat_b))
+        
+        ms_block <- mod_stats(mod_block, mod_block_2)
+      }
+    }
+
     array(c(ms_rand,
             ms_block),
           dim = c(15, 2, 2),
-          dimnames = list(parm = names(mod_stats(mod_rand, mod_rand_2))[1:15],
+          dimnames = list(parm = names(mod_stats(mod_rand, NULL))[1:15],
                           mod = c("GAMM", "LMEM"),
                           vers = c("randomized", "blocked")))
   }
@@ -472,7 +495,9 @@ fit_2x2 <- function(dat, cs = FALSE, by_subj_fs = TRUE,
 #'
 #' @param fit_blocked Whether to fit the blocked version in addition
 #'   to the randomized version.
-#' 
+#'
+#' @param fit_lmem Whether to fit the LMEM in addition to the GAMM.
+#'
 #' @param outfile Name of output file.
 #'
 #' @return Returns NULL.
@@ -491,6 +516,7 @@ mcsim <- function(nmc,
                   k = -1,
                   bam_args = NULL,
                   fit_blocked = TRUE,
+                  fit_lmem = TRUE,
                   outfile = sprintf(
                     "acs_%05d_%03d_%03d_%0.2f_%0.2f_%0.2f_%0.2f_%0.2f_%0.2f_%0.2f_%02d_%s_%s_%s.rds",
                     nmc, n_subj, n_obs,
@@ -522,7 +548,8 @@ mcsim <- function(nmc,
                    rint = rint, rslp = rslp, rcorr = rcorr,
                    version = version)
     res <- fit_2x2(dat = dat, cs = cs, m = m, k = k,
-                   bam_args = bam_args, fit_blocked = fit_blocked)
+                   bam_args = bam_args, fit_blocked = fit_blocked,
+                   fit_lmem = fit_lmem)
     vv <- c(rint, rslp, rcorr, res)
     readr::write_csv(as.data.frame(as.list(vv)),
                      tfile,

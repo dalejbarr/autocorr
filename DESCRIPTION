@@ -1,6 +1,6 @@
 Package: autocorr
 Title: Autocorrelation toolkit for multilevel data
-Version: 0.2.4.9100
+Version: 0.2.5.9100
 Authors@R: c(person("Dale", "Barr", email = "dalejbarr@protonmail.com",
                     role = c("aut", "cre")),
 	     person("Rüdiger", "Thul", email = "ruediger.thul@nottingham.ac.uk",

@@ -12,7 +12,8 @@ fit_2x2(
   m = NA,
   k = -1,
   bam_args = NULL,
-  fit_blocked = TRUE
+  fit_blocked = TRUE,
+  fit_lmem = TRUE
 )
 }
 \arguments{
@@ -37,6 +38,8 @@ the model formulas. Used for debugging.}
 
 \item{fit_blocked}{Whether to fit the blocked version in addition
 to the randomized version.}
+
+\item{fit_lmem}{Whether to fit the LMEM in addition to the GAMM.}
 }
 \value{
 15x2x2 array with model statistics (or just the model
