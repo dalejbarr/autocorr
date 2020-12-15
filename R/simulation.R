@@ -1,3 +1,15 @@
+sawtooth <- function(x) {
+  n <- sample(2:9, 1)
+  ## n = 1 -> sine function
+  ## as n increase, becomes more sawtooth like
+  ## has 2pi frequency
+  sin.k <- function(n,k,x){
+    choose(2*n,n-k)/choose(2*n,n)*sin(k*x)/k
+  }
+  
+  rowSums(purrr::map_dfc(setNames(1:n,1:n), ~ sin.k(n,.x,x)))
+}
+
 ## This function written by R. Harald Baayen
 wiggle <- function(max_time, stddev=2, k=10, scaling=1) {
   x = seq(0, 1, length = max_time)
@@ -28,18 +40,37 @@ wiggle <- function(max_time, stddev=2, k=10, scaling=1) {
 #' 
 #'   \describe{
 #'     \item{0}{No autocorrelation (white noise).}
+#' 
 #'     \item{1}{Sine wave with fixed amplitude, varying phase, and white noise.}
+#' 
 #'     \item{2}{Sine wave with fixed phase, varying amplitude, and white noise.}
+#' 
 #'     \item{3}{Random walk, high frequency, generated using
 #'       [stat_gp()] with gamma = 1 and sigma = 1.}
 #'     \item{4}{Random walk, mid frequency, generated using
 #'       [stat_gp()] with gamma = 2 and sigma = 1.}
+#' 
 #'     \item{5}{Multi-scale: combination of 1 and 3.}
 #'     \item{6}{Multi-scale: combination of 1 and 4.}
 #'     \item{7}{Multi-scale: combination of 2 and 3.}
 #'     \item{8}{Multi-scale: combination of 2 and 4.}
-#'     \item{9}{A wiggly function generated from [mgcv::smooth.construct()], no error}
-#'     \item{10}{A wiggly function generated from [mgcv::smooth.construct()], with 10 percent white noise}
+#' 
+#'     \item{9}{A wiggly function generated from
+#'     [mgcv::smooth.construct()], no error}
+#' 
+#'     \item{10}{A wiggly function generated from
+#'     [mgcv::smooth.construct()], with 10 percent white noise}
+#'
+#'     \item{11}{Analogous to 1, but with a sawtooth pattern instead
+#'     of sine.}
+#' 
+#'     \item{12}{Analogous to 2, but with a sawtooth pattern instead
+#'     of sine.}
+#' 
+#'     \item{13}{Multi-scale: combination of 11 and 3.}
+#'     \item{14}{Multi-scale: combination of 11 and 4.}
+#'     \item{15}{Multi-scale: combination of 12 and 3.}
+#'     \item{16}{Multi-scale: combination of 12 and 4.}
 #' }
 #' 
 #' @return A vector of simulated observations guaranteed to have a
@@ -47,15 +78,21 @@ wiggle <- function(max_time, stddev=2, k=10, scaling=1) {
 #' 
 #' @export
 errsim <- function(n_obs, version) {
-
+## errsim <- function(n_obs, version, det_trend, m, m_sw)  {
+  
+##  if (m_sw==TRUE) {
+##    m <- runif(1L,-m,m)
+##    }
+  
+##  det.tr <- function(x,m) {det.trend(det_trend)(x) + m}
   if (n_obs > length(stat_gp(1, 1)$GP))
     stop("'n_obs' must be smaller than ",
-         length(stat_gp(1, 1)$GP))
+         length(stat_gp(1, 1)$GP))  
   
   version_int <- as.integer(version)
   if (is.na(version_int))
     stop("'version' must be an integer")
-  maxvers <- 10L
+  maxvers <- 16L
   if ((version_int < 0L) || (version_int > maxvers))
     stop("'version' must be between 0 and ", maxvers)
   
@@ -135,6 +172,67 @@ errsim <- function(n_obs, version) {
     vv1 <- wiggle(n_obs)
     vv2 <- (vv1 - mean(vv1)) / sd(vv1)
     vv <- vv2 + rnorm(n_obs, sd = sqrt(.1))
+  } else if (version == 11L) {
+    ## analogous to 1 (fixed amp varying phase)
+    phase <- runif(1L, -pi, pi)
+    vv <- ((sawtooth(x + phase) / sd(sawtooth(x + phase))) +
+           rnorm(length(x), 0, sqrt(.1))) / sqrt(1.1)
+    attr(vv, "phase") <- phase
+  } else if (version == 12L) {
+    ## analogous to 2 (fixed phase varying amp)
+    ampvar <- runif(1L, .2, .8)
+    ## ampvar <- 1
+    noisevar <- 1 - ampvar
+    ##noisevar <- 0
+    vv <- ((sawtooth(x) / sd(sawtooth(x))) * sqrt(ampvar)) +
+      rnorm(n_obs, sd = sqrt(noisevar))
+    attr(vv, "amp") <- ampvar
+  } else if (version == 13L) {
+    ## mixed 11 and 3
+    det.tramp <- .9
+    noise_lvl <- 1 - det.tramp
+    phase <- runif(1L, -pi, pi)
+    sdat <- sawtooth(x + phase) / sd(sawtooth(x + phase))
+    ndat0 <- stat_gp(1, 1)$GP[seq_len(n_obs)]
+    ndat1 <- (ndat0 - mean(ndat0))
+    ndat <- ndat1 / sd(ndat1)
+    vv <- sqrt(det.tramp) * sdat +
+      sqrt(noise_lvl) * ndat
+    attr(vv, "phase") <- phase
+  } else if (version == 14L) {
+    ## mixed 11 and 4
+    det.tramp <- .9
+    noise_lvl <- 1 - det.tramp
+    phase <- runif(1L, -pi, pi)
+    sdat <- sawtooth(x + phase) / sd(sawtooth(x + phase))
+    ndat0 <- stat_gp(1, 2)$GP[seq_len(n_obs)]
+    ndat1 <- ndat0 - mean(ndat0)
+    ndat <- ndat1 / sd(ndat1)
+    vv <- sqrt(det.tramp) * sdat +
+      sqrt(noise_lvl) * ndat
+    attr(vv, "phase") <- phase
+  } else if (version == 15L) {
+    ## mixed 12 and 3
+    ampvar <- runif(1L, .2, .8)
+    noise_lvl <- 1 - ampvar
+    sdat <- sawtooth(x) / sd(sawtooth(x))
+    ndat0 <- stat_gp(1, 1)$GP[seq_len(n_obs)]
+    ndat1 <- ndat0 - mean(ndat0)
+    ndat <- ndat1 / sd(ndat1)
+    vv <- sqrt(ampvar) * sdat +
+      sqrt(noise_lvl) * ndat
+    attr(vv, "amp") <- ampvar
+  } else if (version == 16L) {
+    ## mixed 12 and 4
+    ampvar <- runif(1L, .2, .8)
+    noise_lvl <- 1 - ampvar
+    sdat <- sawtooth(x) / sd(sawtooth(x))
+    ndat0 <- stat_gp(1, 2)$GP[seq_len(n_obs)]
+    ndat1 <- ndat0 - mean(ndat0)
+    ndat <- ndat1 / sd(ndat1)
+    vv <- sqrt(ampvar) * sdat +
+      sqrt(noise_lvl) * ndat
+    attr(vv, "amp") <- ampvar        
   } else {
     stop("version '", version, "' not recognized")
   }
@@ -482,7 +580,7 @@ fit_2x2 <- function(dat, cs = FALSE, by_subj_fs = TRUE,
 #' @param version Autocorrelation case number; an integer between 0 and 8 (see \link{errsim}).
 #'
 #' @param os_always Whether to always fit an overall smooth, or only
-#'   for [errsim()] versions 2, 7, and 8.
+#'   for [errsim()] versions 2, 7, 8, 12, 15, and 16.
 #' 
 #' @param m The `m` parameter to be passed on to any factor smooths
 #'   (specified in the [mgcv::s()] function).
@@ -533,7 +631,7 @@ mcsim <- function(nmc,
   cs <- if (os_always) {
           TRUE
         } else {
-          version %in% c(2L, 7L, 8L)
+          version %in% c(2L, 7L, 8L, 12L, 15L, 16L)
         }
   
   append <- FALSE
