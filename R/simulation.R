@@ -262,10 +262,20 @@ errsim <- function(n_obs, version) {
 #'
 #' @param rcorr Random correlation.
 #'
-#' @param version Autocorrelation case number; an integer between 0
-#'   and 8 (see \code{\link{errsim}}).
+#' @param version How to generate residuals: either an integer
+#'   representing the Scenario number (see \code{\link{errsim}}) or
+#'   the name of a user-defined function.
 #'
-#' @param verbose Whether the data frame should GLM components.
+#' @param verbose Whether the data frame should include GLM
+#'   components.
+#'
+#' @param extra_args A list of extra arguments to be passed to a
+#'   user-defined function to generate residuals.
+#'
+#' @details When used with a user-defined function to generate
+#'   residuals, the residuals for each subject will be standardized
+#'   (i.e., converted to z-scores) before they are combined with other
+#'   model components.
 #' 
 #' @return A data frame with \code{n_subj * n_obs} rows and either 9
 #'   or 12 columns depending on whether verbose is TRUE or FALSE
@@ -291,7 +301,8 @@ sim_2x2 <- function(n_subj = 48, n_obs = 48,
                     int = 0, A = 0, B = 0, AB = 0,
                     rint = .5, rslp = .5, rcorr = .5,
                     version = 0L,
-                    verbose = FALSE) {
+                    verbose = FALSE,
+                    extra_args = NULL) {
 
   if ((n_subj %% 4L) || (n_subj <= 0L))
     stop("'n_subj' must be a positive integer that is a multiple of 4")
@@ -324,8 +335,22 @@ sim_2x2 <- function(n_subj = 48, n_obs = 48,
     AB * dat[["A_c"]] * dat[["B_c"]]
 
   ds <- split(dat, dat[["subj_id"]])
+
+  errs <- if (is.numeric(version)) {
+    replicate(n_subj, errsim(n_obs, version), simplify = FALSE)
+  } else {
+    rres <- do.call(version, c(list(n_subj = n_subj, n_obs = n_obs), extra_args))
+    lapply(rres, function(vv) (vv - mean(vv)) / sd(vv))
+  }
   
-  errs <- replicate(n_subj, errsim(n_obs, version), simplify = FALSE)
+  if (length(errs) != n_subj) {
+    stop("user-defined residual function must return a list with length 'n_subj'")
+  }
+
+  nobstest <- sapply(errs, length)
+  if ( (length(unique(nobstest)) != 1L) || any(unique(nobstest) != n_obs) ) {
+    stop("all elements in list returned by user-defined residual function must be of length 'n_obs'")
+  }
 
   ## add in the errors
   derr <- mapply(function(.d, .e) {
@@ -577,10 +602,13 @@ fit_2x2 <- function(dat, cs = FALSE, by_subj_fs = TRUE,
 #'
 #' @param rcorr_range Range of random correlation.
 #'
-#' @param version Autocorrelation case number; an integer between 0 and 8 (see \link{errsim}).
+#' @param version Autocorrelation case number; either an integer
+#'   corresponding to Scenario number (see \link{errsim}) or the name
+#'   of a user-defined function specified as a character string.
 #'
 #' @param os_always Whether to always fit an overall smooth, or only
-#'   for [errsim()] versions 2, 7, 8, 12, 15, and 16.
+#'   for [errsim()] versions 2, 7, 8, 12, 15, and 16. For user-defined
+#'   functions, default is to fit a common smooth.
 #' 
 #' @param m The `m` parameter to be passed on to any factor smooths
 #'   (specified in the [mgcv::s()] function).
@@ -598,6 +626,16 @@ fit_2x2 <- function(dat, cs = FALSE, by_subj_fs = TRUE,
 #'
 #' @param outfile Name of output file.
 #'
+#' @param extra_args Extra args to be passed along to any user-defined
+#'   function for generating residuals.
+#'
+#' @details The behavior of \code{os_always} depends on whether
+#'   \code{version} has been specified as a scenario number, in which
+#'   case it overrides the scenario-dependent selection of an overall
+#'   smooth, always fitting an overall smooth. If version is the name
+#'   of a user-defined function, then \code{os_always} determines
+#'   whether the model includes an overall smooth.
+#' 
 #' @return Returns NULL.
 #' 
 #' @export
@@ -609,31 +647,36 @@ mcsim <- function(nmc,
                   rslp_range = blst_quantiles()[, "subj_slp"],
                   rcorr_range = c(-.8, .8),
                   version = 0L,
-                  os_always = FALSE,
+                  os_always = is.character(version),
                   m = NA,
                   k = -1,
                   bam_args = NULL,
                   fit_blocked = TRUE,
                   fit_lmem = TRUE,
                   outfile = sprintf(
-                    "acs_%05d_%03d_%03d_%0.2f_%0.2f_%0.2f_%0.2f_%0.2f_%0.2f_%0.2f_%02d_%s_%s_%s.rds",
+                    "acs_%05d_%03d_%03d_%0.2f_%0.2f_%0.2f_%0.2f_%0.2f_%0.2f_%0.2f_%s_%s_%s_%s.rds",
                     nmc, n_subj, n_obs,
                     A, B, AB,
                     rint_range[1], rint_range[2],
                     rslp_range[1], rslp_range[2],
-                    version,
+                    if (is.numeric(version)) sprintf("%02d", version) else version,
                     format(Sys.time(), "%Y-%m-%d-%H-%M-%S"),
                     Sys.info()[["nodename"]],
-                    Sys.getpid())) {
+                    Sys.getpid()),
+                  extra_args = NULL) {
   
   tfile <- tempfile(fileext = ".csv")
                     
   cs <- if (os_always) {
           TRUE
         } else {
-          version %in% c(2L, 7L, 8L, 12L, 15L, 16L)
+          if (is.numeric(version)) {
+            version %in% c(2L, 7L, 8L, 12L, 15L, 16L)
+          } else {
+            os_always
+          }
         }
-  
+
   append <- FALSE
 
   for (i in seq_len(nmc)) {
@@ -644,7 +687,7 @@ mcsim <- function(nmc,
     dat <- sim_2x2(n_subj = n_subj, n_obs = n_obs,
                    int = 0, A = A, B = B, AB = AB,
                    rint = rint, rslp = rslp, rcorr = rcorr,
-                   version = version)
+                   version = version, extra_args = extra_args)
     res <- fit_2x2(dat = dat, cs = cs, m = m, k = k,
                    bam_args = bam_args, fit_blocked = fit_blocked,
                    fit_lmem = fit_lmem)

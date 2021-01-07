@@ -15,17 +15,19 @@ mcsim(
   rslp_range = blst_quantiles()[, "subj_slp"],
   rcorr_range = c(-0.8, 0.8),
   version = 0L,
-  os_always = FALSE,
+  os_always = is.character(version),
   m = NA,
   k = -1,
   bam_args = NULL,
   fit_blocked = TRUE,
   fit_lmem = TRUE,
  
-    outfile = sprintf("acs_\%05d_\%03d_\%03d_\%0.2f_\%0.2f_\%0.2f_\%0.2f_\%0.2f_\%0.2f_\%0.2f_\%02d_\%s_\%s_\%s.rds",
+    outfile = sprintf("acs_\%05d_\%03d_\%03d_\%0.2f_\%0.2f_\%0.2f_\%0.2f_\%0.2f_\%0.2f_\%0.2f_\%s_\%s_\%s_\%s.rds",
     nmc, n_subj, n_obs, A, B, AB, rint_range[1], rint_range[2], rslp_range[1],
-    rslp_range[2], version, format(Sys.time(), "\%Y-\%m-\%d-\%H-\%M-\%S"),
-    Sys.info()[["nodename"]], Sys.getpid())
+    rslp_range[2], if (is.numeric(version)) sprintf("\%02d", version) else version,
+    format(Sys.time(), "\%Y-\%m-\%d-\%H-\%M-\%S"), Sys.info()[["nodename"]],
+    Sys.getpid()),
+  extra_args = NULL
 )
 }
 \arguments{
@@ -49,10 +51,13 @@ even integer.}
 
 \item{rcorr_range}{Range of random correlation.}
 
-\item{version}{Autocorrelation case number; an integer between 0 and 8 (see \link{errsim}).}
+\item{version}{Autocorrelation case number; either an integer
+corresponding to Scenario number (see \link{errsim}) or the name
+of a user-defined function specified as a character string.}
 
 \item{os_always}{Whether to always fit an overall smooth, or only
-for \code{\link[=errsim]{errsim()}} versions 2, 7, and 8.}
+for \code{\link[=errsim]{errsim()}} versions 2, 7, 8, 12, 15, and 16. For user-defined
+functions, default is to fit a common smooth.}
 
 \item{m}{The \code{m} parameter to be passed on to any factor smooths
 (specified in the \code{\link[mgcv:s]{mgcv::s()}} function).}
@@ -70,6 +75,9 @@ to the randomized version.}
 
 \item{outfile}{Name of output file.}
 
+\item{extra_args}{Extra args to be passed along to any user-defined
+function for generating residuals.}
+
 \item{int}{Intercept.}
 }
 \value{
@@ -77,4 +85,12 @@ Returns NULL.
 }
 \description{
 Monte Carlo Simulation of Data Analysis with Trial-by-Trial Variation
+}
+\details{
+The behavior of \code{os_always} depends on whether
+\code{version} has been specified as a scenario number, in which
+case it overrides the scenario-dependent selection of an overall
+smooth, always fitting an overall smooth. If version is the name
+of a user-defined function, then \code{os_always} determines
+whether the model includes an overall smooth.
 }

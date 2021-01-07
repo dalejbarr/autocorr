@@ -15,7 +15,8 @@ sim_2x2(
   rslp = 0.5,
   rcorr = 0.5,
   version = 0L,
-  verbose = FALSE
+  verbose = FALSE,
+  extra_args = NULL
 )
 }
 \arguments{
@@ -39,10 +40,15 @@ even integer.}
 
 \item{rcorr}{Random correlation.}
 
-\item{version}{Autocorrelation case number; an integer between 0
-and 8 (see \code{\link{errsim}}).}
+\item{version}{How to generate residuals: either an integer
+representing the Scenario number (see \code{\link{errsim}}) or
+the name of a user-defined function.}
 
-\item{verbose}{Whether the data frame should GLM components.}
+\item{verbose}{Whether the data frame should include GLM
+components.}
+
+\item{extra_args}{A list of extra arguments to be passed to a
+user-defined function to generate residuals.}
 }
 \value{
 A data frame with \code{n_subj * n_obs} rows and either 9
@@ -66,4 +72,10 @@ respectively.
 }
 \description{
 Simulate 2x2 data with autocorrelated errors
+}
+\details{
+When used with a user-defined function to generate
+residuals, the residuals for each subject will be standardized
+(i.e., converted to z-scores) before they are combined with other
+model components.
 }
