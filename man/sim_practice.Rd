@@ -7,8 +7,8 @@
 sim_practice(
   n_subj,
   n_trials,
-  within_eff = 30,
-  between_eff = 200,
+  within_eff = 10,
+  between_eff = 24,
   asymptote = 400,
   sweep = 400,
   learning_rate = -2,
