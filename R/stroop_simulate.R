@@ -119,6 +119,15 @@ simulate_stroop <- function(n_subj, A = 0, B = 0,
 #' @param dat A data.frame with simulated stroop data, the result of
 #'   \code{\link{simulate_stroop}}.
 #'
+#' @param penalized_fs Whether GAMM factor smooths should be penalized
+#'   (\code{TRUE}, the default) or unpenalized (\code{FALSE}). For
+#'   penalized factor smooths, the \code{m} argument for the smooth
+#'   term is set to 1.
+#'
+#' @param fit_lmem Whether to fit the LMEM model (\code{TRUE}, the
+#'   default) or not (\code{FALSE}, with the corresponding LMEM
+#'   statistics set to \code{NA}).
+#'
 #' @return A named vector with the following statistical results:
 #' 
 #' \describe{
@@ -162,18 +171,37 @@ simulate_stroop <- function(n_subj, A = 0, B = 0,
 #' }
 #' 
 #' @export
-fit_stroop <- function(dat) {
-  mod_gam <- mgcv::bam(latency ~ A_c + B_c +
-                         s(trial, bs = "tp") +
-                         s(session_id, trial, bs = "fs", m = 1) +
-                         s(A_c, session_id, bs = "re"), data = dat)
+fit_stroop <- function(dat, penalized_fs = TRUE, fit_lmem = TRUE) {
+  if (penalized_fs) {
+    mod_gam <- mgcv::bam(latency ~ A_c + B_c +
+                           s(trial, bs = "tp") +
+                           s(session_id, trial, bs = "fs", m = 1) +
+                           s(A_c, session_id, bs = "re"), data = dat)
+  } else {
+    mod_gam <- mgcv::bam(latency ~ A_c + B_c +
+                           s(trial, bs = "tp") +
+                           s(session_id, trial, bs = "fs") +
+                           s(A_c, session_id, bs = "re"), data = dat)
+  }
 
-  mod_lmm <- mgcv::bam(latency ~ A_c + B_c +
-                         s(session_id, bs = "re") +
-                         s(A_c, session_id, bs = "re"), data = dat)
+  if (fit_lmem) {
+    mod_lmm <- mgcv::bam(latency ~ A_c + B_c +
+                           s(session_id, bs = "re") +
+                           s(A_c, session_id, bs = "re"), data = dat)
+    mod_lmm_s <- summary(mod_lmm)
+    vv_lmm <- c(coef(mod_lmm)[1:3],
+                sqrt(diag(vcov(mod_lmm)[1:3, 1:3])),
+                mod_lmm_s[["p.table"]][, "Pr(>|t|)"])
+  } else {
+    vv_lmm <- rep(NA_real_, 9)
+  }
+
+  names(vv_lmm) <- c("e.int", "e.A", "e.B",
+                     "se.int", "se.A", "se.B",
+                     "p.int", "p.A", "p.B")
+
 
   mod_gam_s <- summary(mod_gam)
-  mod_lmm_s <- summary(mod_lmm)
 
   vv_gam <- c(coef(mod_gam)[1:3],
     sqrt(diag(vcov(mod_gam)[1:3, 1:3])),
@@ -183,13 +211,6 @@ fit_stroop <- function(dat) {
                      "se.int", "se.A", "se.B",
                      "p.int", "p.A", "p.B")
 
-  vv_lmm <- c(coef(mod_lmm)[1:3],
-    sqrt(diag(vcov(mod_lmm)[1:3, 1:3])),
-    mod_lmm_s[["p.table"]][, "Pr(>|t|)"])
-
-  names(vv_lmm) <- c("e.int", "e.A", "e.B",
-                     "se.int", "se.A", "se.B",
-                     "p.int", "p.A", "p.B")
 
   c(G = vv_gam,
     L = vv_lmm)

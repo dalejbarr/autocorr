@@ -4,11 +4,20 @@
 \alias{fit_stroop}
 \title{Fit GAMM and LMEM Models to Simulated Stroop Data}
 \usage{
-fit_stroop(dat)
+fit_stroop(dat, penalized_fs = TRUE, fit_lmem = TRUE)
 }
 \arguments{
 \item{dat}{A data.frame with simulated stroop data, the result of
 \code{\link{simulate_stroop}}.}
+
+\item{penalized_fs}{Whether GAMM factor smooths should be penalized
+(\code{TRUE}, the default) or unpenalized (\code{FALSE}). For
+penalized factor smooths, the \code{m} argument for the smooth
+term is set to 1.}
+
+\item{fit_lmem}{Whether to fit the LMEM model (\code{TRUE}, the
+default) or not (\code{FALSE}, with the corresponding LMEM
+statistics set to \code{NA}).}
 }
 \value{
 A named vector with the following statistical results:
