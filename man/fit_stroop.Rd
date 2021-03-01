@@ -64,8 +64,9 @@ The models fit to the data are:
 \section{GAMM}{
 
 \code{bam(latency ~ A_c + B_c +
-      s(session_id, trial, bs = "fs") +  # factor smooth
-      s(A_c, session_id, bs = "re"), # random slope
+      s(trial, bs = "tp") +                    # common smooth
+      s(session_id, trial, bs = "fs", m = 1) + # factor smooth
+      s(A_c, session_id, bs = "re"),           # random slope
       data = dat)}
 }
 

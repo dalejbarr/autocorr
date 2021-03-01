@@ -8,8 +8,8 @@ simulate_stroop(
   n_subj,
   A = 0,
   B = 0,
-  rivar = diag(stroop_mod$covmx)[1],
-  rsvar = diag(stroop_mod$covmx)[2]
+  rivar = diag(autocorr::stroop_mod$covmx)[1],
+  rsvar = diag(autocorr::stroop_mod$covmx)[2]
 )
 }
 \arguments{

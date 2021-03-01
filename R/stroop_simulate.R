@@ -105,8 +105,9 @@ simulate_stroop <- function(n_subj, A = 0, B = 0,
 #'
 #' @section GAMM:
 #' \code{bam(latency ~ A_c + B_c +
-#'       s(session_id, trial, bs = "fs") +  # factor smooth
-#'       s(A_c, session_id, bs = "re"), # random slope
+#'       s(trial, bs = "tp") +                    # common smooth
+#'       s(session_id, trial, bs = "fs", m = 1) + # factor smooth
+#'       s(A_c, session_id, bs = "re"),           # random slope
 #'       data = dat)}
 #'
 #' @section LMEM:
@@ -163,7 +164,8 @@ simulate_stroop <- function(n_subj, A = 0, B = 0,
 #' @export
 fit_stroop <- function(dat) {
   mod_gam <- mgcv::bam(latency ~ A_c + B_c +
-                         s(session_id, trial, bs = "fs") +
+                         s(trial, bs = "tp") +
+                         s(session_id, trial, bs = "fs", m = 1) +
                          s(A_c, session_id, bs = "re"), data = dat)
 
   mod_lmm <- mgcv::bam(latency ~ A_c + B_c +
