@@ -1,7 +1,16 @@
 #' Simulate Practice-Effect Data and Fit All Models
 #'
+#' Simulate data using \code{\link{sim_practice}} and then fit three
+#' models: a non-linear mixed-effects model (NLME), a linear
+#' mixed-effects model (LMEM) and a generalized additive mixed-effects
+#' model (GAMM).
+#' 
 #' @inheritParams sim_practice
 #'
+#' @details Used in Monte Carlo simulation. See
+#'   \code{\link{sim_practice}} for details on data generation and
+#'   \code{\link{fit_practice_models}} for details on model fitting.
+#' 
 #' @return A 44-element numeric vector, containing statistical results
 #'   for all three models. Paramters are prefixed by \code{G} for GAMM
 #'   results, by \code{L} for LMEM results, and by \code{N} for NLME
@@ -246,6 +255,32 @@ sim_practice <- function(n_subj, n_trials,
 #'   includes no wiggly terms, it is functionally equivalent to a
 #'   model fit using the \code{lme4} package. For simplicity, all
 #'   models assume a constant learning rate across subjects.
+#'
+#' The exact models are:
+#'
+#' @section NLME:
+#'
+#' \code{nlme::nlme(y ~ b0 * wij + Asym + sweep * exp(-exp(lrc) * tij),
+#'                      groups = ~ subj_id,
+#'                      dat, fixed = list(b0 ~ 1, Asym ~ bi, sweep ~ 1, lrc ~ 1),
+#'                      random = nlme::pdDiag(b0 + Asym + sweep ~ 1),
+#'                      start = start_vals)}
+#' 
+#' @section LMEM:
+#'
+#' \code{mgcv::bam(y ~ wij + bi +
+#'              s(subj_id, bs = "re") + # random intercept
+#'              s(wij, subj_id, bs = "re"), # random slope
+#'            data = dat)}
+#'
+#' @section GAMM:
+#'
+#' \code{mgcv::bam(y ~ wij + bi +
+#'              s(tij, bs = "tp") + # common smooth
+#'              s(wij, subj_id, bs = "re") + # random slope
+#'              s(tij, subj_id, bs = "fs"), # factor smooth (time-varying icept)
+#'            data = dat)}
+#'
 NULL
 
 #' @rdname fit_practice_models

@@ -68,7 +68,15 @@ the corresponding \code{N.xxx.xxx} values will be set to
 \code{NA}.
 }
 \description{
-Simulate Practice-Effect Data and Fit All Models
+Simulate data using \code{\link{sim_practice}} and then fit three
+models: a non-linear mixed-effects model (NLME), a linear
+mixed-effects model (LMEM) and a generalized additive mixed-effects
+model (GAMM).
+}
+\details{
+Used in Monte Carlo simulation. See
+\code{\link{sim_practice}} for details on data generation and
+\code{\link{fit_practice_models}} for details on model fitting.
 }
 \seealso{
 \code{\link{sim_practice}} for information about data

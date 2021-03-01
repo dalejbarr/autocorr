@@ -1,6 +1,6 @@
 Package: autocorr
 Title: Autocorrelation toolkit for multilevel data
-Version: 0.6.0.9000
+Version: 0.6.5
 Authors@R: c(person("Dale", "Barr", email = "dalejbarr@protonmail.com",
                     role = c("aut", "cre")),
 	     person("Rüdiger", "Thul", email = "ruediger.thul@nottingham.ac.uk",
@@ -15,8 +15,11 @@ Imports:
     MASS,
     pracma,
     readr,
-    nlme
+    nlme,
+    stats,
+    Rdpack
 RoxygenNote: 7.1.0
+RdMacros: Rdpack
 Suggests: 
     testthat (>= 2.1.0)
 Remotes: 

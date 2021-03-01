@@ -35,5 +35,36 @@ includes no wiggly terms, it is functionally equivalent to a
 model fit using the \code{lme4} package. For simplicity, all
 models assume a constant learning rate across subjects.
 
+The exact models are:
+
 
 }
+\section{NLME}{
+
+
+\code{nlme::nlme(y ~ b0 * wij + Asym + sweep * exp(-exp(lrc) * tij),
+                     groups = ~ subj_id,
+                     dat, fixed = list(b0 ~ 1, Asym ~ bi, sweep ~ 1, lrc ~ 1),
+                     random = nlme::pdDiag(b0 + Asym + sweep ~ 1),
+                     start = start_vals)}
+}
+
+\section{LMEM}{
+
+
+\code{mgcv::bam(y ~ wij + bi +
+             s(subj_id, bs = "re") + # random intercept
+             s(wij, subj_id, bs = "re"), # random slope
+           data = dat)}
+}
+
+\section{GAMM}{
+
+
+\code{mgcv::bam(y ~ wij + bi +
+             s(tij, bs = "tp") + # common smooth
+             s(wij, subj_id, bs = "re") + # random slope
+             s(tij, subj_id, bs = "fs"), # factor smooth (time-varying icept)
+           data = dat)}
+}
+
