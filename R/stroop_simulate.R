@@ -17,7 +17,7 @@
 #'   within-factor of congruency. The simulated data includes an
 #'   additional between-subjects factor. The simulation parameters are
 #'   taken from \code{\link{stroop_mod}}, with a random subset of
-#'   residuals grafted onto the fitted values for each subject.
+#'   residuals grafted onto the fitted values for each subject. 
 #'
 #' The simulated response latency for observation \code{j} of subject
 #' \code{i} is given by the following formula:
@@ -35,18 +35,19 @@
 #' Note that whereas the original dataset had 63 observations per
 #' subject (with 2/3 in the incongruent condition and 1/3 in the
 #' congruent condition), the current dataset had 1/2 congruent and 1/2
-#' incongruent. To make this work, the 63rd residual was lopped off
-#' for each participant.
+#' incongruent. Also, only the first 20 of the 63 residuals were used,
+#' to eliminate discontinuities introduced at the start of each
+#' 21-trial block.
 #'
 #' @return
-#' A data frame with \code{n_subj * 62} simulated observations on
+#' A data frame with \code{n_subj * 20} simulated observations on
 #' \describe{
 #'
 #'   \item{\code{session_id}}{A factor with \code{session_id} values
 #'   corresponding to the subjects whose residuals were sampled from
 #'   \code{\link{stroop_mod[["resid"]]}}}.
 #'
-#'   \item{\code{trial}}{An integer specifying the trial number (0 to 62).}
+#'   \item{\code{trial}}{An integer specifying the trial number (1 to 20).}
 #'
 #'   \item{\code{A}}{Level of within-subject factor (\code{A1} or \code{A2}).}
 #'
@@ -75,18 +76,20 @@ simulate_stroop <- function(n_subj, A = 0, B = 0,
   
   srfx <- MASS::mvrnorm(n_subj, mu = c(0, 0), Sigma = autocorr::stroop_mod[["covmx"]])
 
-  dat <- data.frame(session_id = rep(factor(sids), each = 62L),
-                    trial = rep(0:61, times = n_subj),
-                    sri = rep(srfx[, 1], each = 62L),
-                    srs = rep(srfx[, 2], each = 62L),
-                    A = factor(unlist(replicate(n_subj, sample(rep(c("A1", "A2"), each = 31L)),
+  dat <- data.frame(session_id = rep(factor(sids), each = 20L),
+                    trial = rep(1:20, times = n_subj),
+                    sri = rep(srfx[, 1], each = 20L),
+                    srs = rep(srfx[, 2], each = 20L),
+                    A = factor(unlist(replicate(n_subj, sample(rep(c("A1", "A2"),
+                                                                   each = 10L)),
                                          simplify = FALSE))),
-                    B = factor(rep(sample(rep(c("B1", "B2"), each = n_subj / 2L)), each = 62L)))
+                    B = factor(rep(sample(rep(c("B1", "B2"), each = n_subj / 2L)),
+                                   each = 20L)))
   
   dat[["A_c"]] <- ifelse(dat[["A"]] == "A1", -.5, .5)
   dat[["B_c"]] <- ifelse(dat[["B"]] == "B1", -.5, .5)
   dat[["err"]] <- unlist(lapply(sids, function(nx) {
-    autocorr::stroop_mod[["resid"]][[nx]][1:62]
+    autocorr::stroop_mod[["resid"]][[nx]][1:20]
   }))
   dat[["latency"]] <- autocorr::stroop_mod[["fixed"]]["(Intercept)"] + dat[["sri"]] +
     B * dat[["B_c"]] +
@@ -168,6 +171,11 @@ simulate_stroop <- function(n_subj, A = 0, B = 0,
 #'
 #'   \item{\code{L.p.B}}{P-value for B of the LMEM model.}
 #'
+#' }
+#'
+#' @examples
+#' \donttest{
+#'   fit_stroop(simulate_stroop(20))
 #' }
 #' 
 #' @export
