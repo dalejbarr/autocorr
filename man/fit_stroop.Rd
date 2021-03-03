@@ -4,67 +4,82 @@
 \alias{fit_stroop}
 \title{Fit GAMM and LMEM Models to Simulated Stroop Data}
 \usage{
-fit_stroop(dat, penalized_fs = TRUE, fit_lmem = TRUE)
+fit_stroop(dat)
 }
 \arguments{
 \item{dat}{A data.frame with simulated stroop data, the result of
 \code{\link{simulate_stroop}}.}
-
-\item{penalized_fs}{Whether GAMM factor smooths should be penalized
-(\code{TRUE}, the default) or unpenalized (\code{FALSE}). For
-penalized factor smooths, the \code{m} argument for the smooth
-term is set to 1.}
-
-\item{fit_lmem}{Whether to fit the LMEM model (\code{TRUE}, the
-default) or not (\code{FALSE}, with the corresponding LMEM
-statistics set to \code{NA}).}
 }
 \value{
-A named vector with the following statistical results:
+A named 27-element vector with the following statistical results:
 
 \describe{
 
-\item{\code{G.e.int}}{Estimated fixed intercept of the GAMM model.}
+\item{\code{Gp.e.B0}}{Estimated fixed intercept of the penalized GAMM model.}
 
-\item{\code{G.e.A}}{Estimated fixed effect of A of the GAMM model.}
+\item{\code{Gp.e.B1}}{Estimated fixed effect of within-subject
+factor of the penalized GAMM model.}
 
-\item{\code{G.e.B}}{Estimated fixed effect of B of the GAMM model.}
+\item{\code{Gp.e.B2}}{Estimated fixed effect of between-subject
+factor of the penalized GAMM model.}
 
-\item{\code{G.se.int}}{Standard error for the intercept of the GAMM model.}
+\item{\code{Gp.se.B0}}{Standard error for the intercept of the penalized GAMM model.}
 
-\item{\code{G.se.A}}{Standard error for effect A of the GAMM model.}
+\item{\code{Gp.se.B1}}{Standard error for within-effect of the penalized GAMM model.}
 
-\item{\code{G.se.B}}{Standard error for effect B of the GAMM model.}
+\item{\code{Gp.se.B2}}{Standard error for between-effect of the penalized GAMM model.}
 
-\item{\code{G.p.int}}{P-value for the intercept of the GAMM model.}
+\item{\code{Gp.p.B0}}{P-value for the intercept of the penalized GAMM model.}
 
-\item{\code{G.p.A}}{P-value for A of the GAMM model.}
+\item{\code{Gp.p.B1}}{P-value for within-effect of the penalized GAMM model.}
 
-\item{\code{G.p.B}}{P-value for B of the GAMM model.}
+\item{\code{Gp.p.B2}}{P-value for between-effect of the penalized GAMM model.}
 
-\item{\code{L.e.int}}{Estimated fixed intercept of the LMEM model.}
+\item{\code{Gu.e.B0}}{Estimated fixed intercept of the unpenalized GAMM model.}
 
-\item{\code{L.e.A}}{Estimated fixed effect of A of the LMEM model.}
+\item{\code{Gu.e.B1}}{Estimated fixed effect of within-subject
+factor of the unpenalized GAMM model.}
 
-\item{\code{L.e.B}}{Estimated fixed effect of B of the LMEM model.}
+\item{\code{Gu.e.B2}}{Estimated fixed effect of between-subject
+factor of the unpenalized GAMM model.}
 
-\item{\code{L.se.int}}{Standard error for the intercept of the LMEM model.}
+\item{\code{Gu.se.B0}}{Standard error for the intercept of the unpenalized GAMM model.}
 
-\item{\code{L.se.A}}{Standard error for effect A of the LMEM model.}
+\item{\code{Gu.se.B1}}{Standard error for within-effect of the unpenalized GAMM model.}
 
-\item{\code{L.se.B}}{Standard error for effect B of the LMEM model.}
+\item{\code{Gu.se.B2}}{Standard error for between-effect of the unpenalized GAMM model.}
 
-\item{\code{L.p.int}}{P-value for the intercept of the LMEM model.}
+\item{\code{Gu.p.B0}}{P-value for the intercept of the unpenalized GAMM model.}
 
-\item{\code{L.p.A}}{P-value for A of the LMEM model.}
+\item{\code{Gu.p.B1}}{P-value for within-effect of the unpenalized GAMM model.}
 
-\item{\code{L.p.B}}{P-value for B of the LMEM model.}
+\item{\code{Gu.p.B2}}{P-value for between-effect of the unpenalized GAMM model.}
+
+\item{\code{Lm.e.B0}}{Estimated fixed intercept of the LMEM model.}
+
+\item{\code{Lm.e.B1}}{Estimated fixed effect of within-subject
+factor of the LMEM model.}
+
+\item{\code{Lm.e.B2}}{Estimated fixed effect of between-subject
+factor of the LMEM model.}
+
+\item{\code{Lm.se.B0}}{Standard error for the intercept of the LMEM model.}
+
+\item{\code{Lm.se.B1}}{Standard error for within-effect of the LMEM model.}
+
+\item{\code{Lm.se.B2}}{Standard error for between-effect of the LMEM model.}
+
+\item{\code{Lm.p.B0}}{P-value for the intercept of the LMEM model.}
+
+\item{\code{Lm.p.B1}}{P-value for within-effect of the LMEM model.}
+
+\item{\code{Lm.p.B2}}{P-value for between-effect of the LMEM model.}
 
 }
 }
 \description{
-Uses \code{\link[mgcv]{bam}} to fit a Generalized Additive
-Mixed-Effects Model (GAMM) and a Linear Mixed-Effects Model (LMEM)
+Uses \code{\link[mgcv]{bam}} to fit two Generalized Additive
+Mixed-Effects Models (GAMM) and a Linear Mixed-Effects Model (LMEM)
 to simulated Stroop data.
 }
 \details{
@@ -72,18 +87,36 @@ The models fit to the data are:
 }
 \section{GAMM}{
 
-\code{bam(latency ~ A_c + B_c +
+
+with penalized factor smooths:
+
+\code{bam(Y_ij ~ W_ij + B_i +
       s(trial, bs = "tp") +                    # common smooth
       s(session_id, trial, bs = "fs", m = 1) + # factor smooth
-      s(A_c, session_id, bs = "re"),           # random slope
+      s(W_ij, session_id, bs = "re"),           # random slope
+      data = dat)}
+
+and unpenalized factor smooths:
+
+\code{bam(Y_ij ~ W_ij + B_i +
+      s(trial, bs = "tp") +            # common smooth
+      s(session_id, trial, bs = "fs")  # factor smooth
+      s(W_ij, session_id, bs = "re"),  # random slope
       data = dat)}
 }
 
 \section{LMEM}{
 
-\code{bam(latency ~ A_c + B_c +
-      s(session_id, bs = "re") +  # random intercept
-      s(A_c, session_id, bs = "re"), # random slope
+
+\code{bam(Y_ij ~ W_ij + B_i +
+      s(session_id, bs = "re") +      # random intercept
+      s(W_ij, session_id, bs = "re"), # random slope
       data = dat)}
 }
 
+\examples{
+\donttest{
+  fit_stroop(simulate_stroop(20))
+}
+
+}

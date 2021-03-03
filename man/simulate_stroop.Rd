@@ -6,42 +6,53 @@
 \usage{
 simulate_stroop(
   n_subj,
-  A = 0,
-  B = 0,
+  B1 = 0,
+  B2 = 0,
   rivar = diag(autocorr::stroop_mod$covmx)[1],
-  rsvar = diag(autocorr::stroop_mod$covmx)[2]
+  rsvar = diag(autocorr::stroop_mod$covmx)[2],
+  verbose = FALSE
 )
 }
 \arguments{
 \item{n_subj}{Number of subjects.}
 
-\item{A}{Fixed effect of congruency.}
+\item{B1}{Fixed effect of congruency.}
 
-\item{B}{Fixed effect of the between-subjects factor.}
+\item{B2}{Fixed effect of the between-subjects factor.}
 
 \item{rivar}{Random intercept variance.}
 
 \item{rsvar}{Random slope variance.}
+
+\item{verbose}{Whether to return error components (random effects and residuals).}
 }
 \value{
-A data frame with \code{n_subj * 62} simulated observations on
+A data frame with \code{n_subj * 20} simulated observations
+on 7 (or 10) variables, depending on \code{verbose}:
+
 \describe{
 
 \item{\code{session_id}}{A factor with \code{session_id} values
 corresponding to the subjects whose residuals were sampled from
 \code{\link{stroop_mod[["resid"]]}}}.
 
-\item{\code{trial}}{An integer specifying the trial number (0 to 62).}
+\item{\code{trial}}{An integer specifying the trial number (1 to 20).}
 
-\item{\code{A}}{Level of within-subject factor (\code{A1} or \code{A2}).}
+\item{\code{congruency}}{Level of within-subject factor (\code{congruent} or \code{incongruent}).}
 
-\item{\code{B}}{Level of between-subject factor (\code{B1} or \code{B2}).}
+\item{\code{group}}{Level of between-subject factor (\code{G1} or \code{G2}).}
 
-\item{\code{A_c}}{Deviation-coded predictor for factor \code{A}.}
+\item{\code{W_ij}}{Deviation-coded predictor for factor \code{congruency}.}
 
-\item{\code{B_c}}{Deviation-coded predictor for factor \code{B}.}
+\item{\code{B_i}}{Deviation-coded predictor for factor \code{group}.}
 
-\item{\code{latency}}{Simulated response latency in milliseconds.}
+\item{\code{Y_ij}}{Simulated response latency in milliseconds.}
+
+\item{\code{b_0i}}{Random effect for subject i (verbose mode only).}
+
+\item{\code{b_1i}}{Random slope for subject i (verbose mode only).}
+
+\item{\code{e_ij}}{Residual for subject i, observation j (verbose mode only).}
 }
 }
 \description{
@@ -58,27 +69,28 @@ residuals grafted onto the fitted values for each subject.
 The simulated response latency for observation \code{j} of subject
 \code{i} is given by the following formula:
 
-\code{latency_ij = int + sri_i + B * B_c + (A + srs_i) * A_c + e_ij}
+\code{latency_ij = B0 + b_0i + B2 * B_i + (B1 + b_1i) * W_ij + e_ij}
 
-where \code{int} is \code{stroop_mod$fixed["(Intercept)"]},
-\code{sri_i} and \code{srs_i} are the random intercept and random
-slope for subject \code{i}, \code{A_c} and \code{B_c} are
+where \code{B0} is \code{stroop_mod$fixed["(Intercept)"]},
+\code{b_0i} and \code{b_1i} are the random intercept and random
+slope for subject \code{i}, \code{W_ij} and \code{B_i} are
 deviation-coded predictors for the within- and between- subject
-factors respectively, \code{A} and \code{B} are the raw within- and
+factors respectively, \code{B1} and \code{B2} are the raw within- and
 between- subject effect sizes, and \code{e_ij} is the \code{j}th
 residual for subject \code{i}.
 
 Note that whereas the original dataset had 63 observations per
 subject (with 2/3 in the incongruent condition and 1/3 in the
 congruent condition), the current dataset had 1/2 congruent and 1/2
-incongruent. To make this work, the 63rd residual was lopped off
-for each participant.
+incongruent. Also, only the first 20 of the 63 residuals were used,
+to eliminate discontinuities introduced at the start of each
+21-trial block.
 }
 \examples{
 ## use parameters from Many Labs 3 model fit
 dat <- simulate_stroop(48, A = stroop_mod$fixed["cong"])
 
-mod <- lme4::lmer(latency ~ A_c + B_c + (A_c || session_id), dat)
+mod <- lme4::lmer(Y_ij ~ W_ij + B_i + (W_ij || session_id), dat)
 summary(mod)
 
 }

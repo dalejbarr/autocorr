@@ -24,11 +24,14 @@ mod <- lmer(latency ~ cong + (cong || session_id), stroop_ML3)
 allres <- double(nrow(stroop_ML3))
 allres[!is.na(stroop_ML3[["latency"]])] <- residuals(mod)
 
+v1 <- round(sqrt(as.numeric(VarCorr(mod)[[1]][1, 1]))) # random intercept
+v2 <- round(sqrt(as.numeric(VarCorr(mod)[[2]][1, 1]))) # random slope
+
 stroop_mod <- list(
-  fixed = fixef(mod),
-  covmx = matrix(c(as.numeric(VarCorr(mod)[[1]][1, 1]), 0,
-		   0, as.numeric(VarCorr(mod)[[2]][1, 1])), nrow = 2),
-  sigma = sigma(mod),
+  fixed = round(fixef(mod)),
+  covmx = matrix(c(v1^2, 0,
+		   0, v2^2), nrow = 2),
+  sigma = round(sigma(mod)),
   resid = split(allres, stroop_ML3[["session_id"]]))
 
 usethis::use_data(stroop_ML3, overwrite = TRUE)
