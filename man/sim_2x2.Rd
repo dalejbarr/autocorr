@@ -15,6 +15,7 @@ sim_2x2(
   rslp = 0.5,
   rcorr = 0.5,
   version = 0L,
+  rand_fn = "shuffle",
   verbose = FALSE,
   extra_args = NULL
 )
@@ -43,6 +44,11 @@ even integer.}
 \item{version}{How to generate residuals: either an integer
 representing the Scenario number (see \code{\link{errsim}}) or
 the name of a user-defined function.}
+
+\item{rand_fn}{Name of the function to randomize trial order
+(defaults to \code{\link{shuffle}}). This can be a user-supplied
+function; see \code{\link{shuffle}} for details on how this
+function should be constructed.}
 
 \item{verbose}{Whether the data frame should include GLM
 components.}

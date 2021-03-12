@@ -240,6 +240,97 @@ errsim <- function(n_obs, version) {
   (vv - mean(vv)) / sd(vv)
 }
 
+#' Shuffle Trial Order
+#'
+#' Randomly shuffle the order that trials appear for a set of participants.
+#'
+#' @param n_subj Number of subjects.
+#'
+#' @param n_obs Number of observations per subject.
+#'
+#' @return An unnamed list of length \code{n_subj}, with each element
+#'   of that list being a vector of length \code{n_obs} containing the
+#'   position number for each trial.
+#' 
+#' @details This is the default function used to perform the
+#'   randomization of within-subject factor labels when generating
+#'   simulated data using \code{\link{sim_2x2}}. The original,
+#'   unrandomized dataset is ordered by the variables \code{B},
+#'   \code{subj_id}, \code{A}, such that the first half of subjects
+#'   are in \code{B1} and the second half in \code{B2}, and the first
+#'   half of the observations for subject \code{i} are in condition A1
+#'   and the last half are in condition \code{A2}. This function
+#'   generates indices to use to re-order the trials randomly for each
+#'   subject. It is simply a wrapper around the function
+#'   \code{replicate(n_subj, sample(seq_len(n_obs)), simplify=FALSE)}.
+#'
+#' It is possible to write your own function to create pseudorandom
+#' series. Any user-defined function must have the same formal
+#' arguments as this function in the same order, and return a list of
+#' integer vectors, with each vector of length \code{n_obs}, and the
+#' list itself of length \code{n_subj}.
+#'
+#' @examples
+#' shuffle(4, 8)
+#' 
+#' sim_2x2(4, 8, rand_fn="shuffle") ## the default for sim_2x2
+#'
+#' ## user-defined randomization function
+#' my_shuffle <- function(n_subj, n_obs) {
+#'   odds <- seq(1, n_obs, 2)
+#'   evens <- seq(2, n_obs, 2)
+#'   replicate(n_subj,
+#'             if (sample(c(FALSE, TRUE), 1)) {
+#'               c(odds, evens)
+#'             } else {
+#'               c(evens, odds)
+#'             },
+#'             simplify=FALSE)
+#' }
+#'
+#' my_shuffle(4, 8)
+#' sim_2x2(4, 8, rand_fn="my_shuffle")
+#'
+#' @export
+shuffle <- function(n_subj, n_obs) {
+  replicate(n_subj, sample(seq_len(n_obs)), simplify = FALSE)
+}
+
+#' Alternating Trial Order
+#'
+#' Generate trial order so that the levels of the within-subject
+#' factor form an alternating sequence.
+#'
+#' @param n_subj Number of subjects.
+#'
+#' @param n_obs Number of observations per subject.
+#'
+#' @return An unnamed list of length \code{n_subj}, with each element
+#'   of that list being a vector of length \code{n_obs} containing the
+#'   position number for each trial.
+#' 
+#' @examples
+#' shuffle_alt(4, 4)
+#' 
+#' sim_2x2(4, 4, rand_fn="shuffle_alt")
+#'
+#' @export
+shuffle_alt <- function(n_subj, n_obs) {
+  if ((n_subj %% 4L) != 0L) {
+    stop("'n_subj' must be a multiple of 4")
+  }
+  if ((n_obs %% 2L) == 1L) {
+    stop("'n_obs' must be an even number")
+  }
+  odds <- seq(1, n_obs, 2)
+  evens <- seq(2, n_obs, 2)
+  mx <- cbind(odds, evens)
+  scond <- c(replicate(2, sample(rep(1:2, each = n_subj / 4))))
+  lapply(scond, function(.x) {
+    c(mx[, .x], mx[, 3L - .x])
+  })
+}
+
 #' Simulate 2x2 data with autocorrelated errors
 #'
 #' @param n_subj Number of subjects to simulate. Must be a positive
@@ -265,6 +356,11 @@ errsim <- function(n_obs, version) {
 #' @param version How to generate residuals: either an integer
 #'   representing the Scenario number (see \code{\link{errsim}}) or
 #'   the name of a user-defined function.
+#'
+#' @param rand_fn Name of the function to randomize trial order
+#'   (defaults to \code{\link{shuffle}}). This can be a user-supplied
+#'   function; see \code{\link{shuffle}} for details on how this
+#'   function should be constructed.
 #'
 #' @param verbose Whether the data frame should include GLM
 #'   components.
@@ -301,6 +397,7 @@ sim_2x2 <- function(n_subj = 48, n_obs = 48,
                     int = 0, A = 0, B = 0, AB = 0,
                     rint = .5, rslp = .5, rcorr = .5,
                     version = 0L,
+                    rand_fn = "shuffle",
                     verbose = FALSE,
                     extra_args = NULL) {
 
@@ -326,6 +423,7 @@ sim_2x2 <- function(n_subj = 48, n_obs = 48,
     A = factor(rep(c("A1", "A2"), each = n_obs / 2L)))
 
   dat <- merge(sfx, trials, by = "subj_id")
+  dat <- dat[order(dat[["B"]], dat[["subj_id"]], dat[["A"]]), ]
   dat[["A_c"]] <- ifelse(dat[["A"]] == "A1", -.5, .5)
   dat[["B_c"]] <- ifelse(dat[["B"]] == "B1", -.5, .5)
   dat[["Y_fit"]] <-
@@ -333,7 +431,7 @@ sim_2x2 <- function(n_subj = 48, n_obs = 48,
     (A + dat[["rslp"]]) * dat[["A_c"]] +
     B * dat[["B_c"]] +
     AB * dat[["A_c"]] * dat[["B_c"]]
-
+  
   ds <- split(dat, dat[["subj_id"]])
 
   errs <- if (is.numeric(version)) {
@@ -352,9 +450,25 @@ sim_2x2 <- function(n_subj = 48, n_obs = 48,
     stop("all elements in list returned by user-defined residual function must be of length 'n_obs'")
   }
 
+  tix <- do.call(rand_fn, list(n_subj, n_obs))
+  if (!is.list(tix)) {
+    stop("the randomization function must return a list of integers")
+  }
+
+  ## check that elements of the list have the full seq of integers
+  ntest <- sapply(tix, length) == n_obs
+  ltest <- sapply(tix, setequal, seq_len(n_obs))
+
+  if (!(ntest && ltest)) {
+    stop("invalid randomization function:\n",
+         "each list element returned by rand_fn must ",
+         "contain all integers from 1 to 'n_obs'")
+  }
+  
   ## add in the errors
-  derr <- mapply(function(.d, .e) {
-    .d[["tnum_r"]] <- sample(seq_len(nrow(.d)))
+  derr <- mapply(function(.d, .e, .n) {
+    ##.d[["tnum_r"]] <- sample(seq_len(nrow(.d)))
+    .d[["tnum_r"]] <- .n
     .d2 <- split(.d, .d[["A"]])
     if (.d[["blk_ord"]][1] == 1L) {
       .d2[[1]][["tnum_b"]] <- sample(seq_len(n_obs / 2L))
@@ -367,7 +481,7 @@ sim_2x2 <- function(n_subj = 48, n_obs = 48,
     .d3[["Y_r"]] <- .d3[["Y_fit"]] + .e[.d3[["tnum_r"]]]
     .d3[["Y_b"]] <- .d3[["Y_fit"]] + .e[.d3[["tnum_b"]]]
     .d3
-  }, ds, errs, SIMPLIFY = FALSE)
+  }, ds, errs, tix, SIMPLIFY = FALSE)
 
   dall <- do.call("rbind", derr)
   rownames(dall) <- NULL
