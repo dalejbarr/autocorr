@@ -240,6 +240,7 @@ errsim <- function(n_obs, version) {
   (vv - mean(vv)) / sd(vv)
 }
 
+
 #' Shuffle Trial Order
 #'
 #' Randomly shuffle the order that trials appear for a set of participants.
@@ -393,7 +394,7 @@ shuffle_alt <- function(n_subj, n_obs) {
 #' }
 #'
 #' @export
-sim_2x2 <- function(n_subj = 48, n_obs = 48,
+sim_2x2_old <- function(n_subj = 48, n_obs = 48,
                     int = 0, A = 0, B = 0, AB = 0,
                     rint = .5, rslp = .5, rcorr = .5,
                     version = 0L,
