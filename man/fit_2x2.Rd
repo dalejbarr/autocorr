@@ -4,10 +4,20 @@
 \alias{fit_2x2}
 \title{Fit models to 2x2 data with autocorrelated errors}
 \usage{
-fit_2x2(dat, cs = FALSE, by_subj_fs = TRUE, dontfit = FALSE)
+fit_2x2(
+  dat,
+  cs = FALSE,
+  by_subj_fs = TRUE,
+  dontfit = FALSE,
+  m = NA,
+  k = -1,
+  bam_args = NULL,
+  fit_blocked = TRUE,
+  fit_lmem = TRUE
+)
 }
 \arguments{
-\item{dat}{Data generated using \link{sim_2x2}.}
+\item{dat}{Data generated using \code{\link[=sim_2x2]{sim_2x2()}}.}
 
 \item{cs}{Fit smooths as main effect of trial (in addition to
 by-subject factor smooths) for the GAMM models?}
@@ -16,53 +26,70 @@ by-subject factor smooths) for the GAMM models?}
 
 \item{dontfit}{If \code{TRUE}, don't fit the models, just return
 the model formulas. Used for debugging.}
+
+\item{m}{The \code{m} parameter to be passed on to any factor smooths
+(specified in the \code{\link[mgcv:s]{mgcv::s()}} function).}
+
+\item{k}{The \code{k} parameter to be passed on to any factor smooths
+(specified in the \code{\link[mgcv:s]{mgcv::s()}} function).}
+
+\item{bam_args}{Any other arguments to be passed on to
+\code{\link[mgcv:bam]{mgcv::bam()}} (for the fitting of the GAMM models only.)}
+
+\item{fit_blocked}{Whether to fit the blocked version in addition
+to the randomized version.}
+
+\item{fit_lmem}{Whether to fit the LMEM in addition to the GAMM.}
 }
 \value{
 15x2x2 array with model statistics (or just the model
-  formulas if \code{dontfit} is \code{TRUE}). Second dimension is
-  GAMM or LMEM, third is randomized or blocked, and first dimension
-  is as follows.
+formulas if \code{dontfit} is \code{TRUE}). Second dimension is
+GAMM or LMEM, third is randomized or blocked, and first dimension
+is as follows.
 
 \describe{
 
-  \item{\code{e_int}}{Estimated intercept.}
+\item{\code{e_int}}{Estimated intercept.}
 
-  \item{\code{e_A}}{Estimated main effect of A.}
+\item{\code{e_A}}{Estimated main effect of A.}
 
-  \item{\code{e_B}}{Estimated main effect of B.}
+\item{\code{e_B}}{Estimated main effect of B.}
 
-  \item{\code{e_AB}}{Estimated AB interaction.}
+\item{\code{e_AB}}{Estimated AB interaction.}
 
-  \item{\code{se_int}}{Standard error for the intercept.}
+\item{\code{se_int}}{Standard error for the intercept.}
 
-  \item{\code{se_A}}{Standard error for A.}
+\item{\code{se_A}}{Standard error for A.}
 
-  \item{\code{se_B}}{Standard error for B.}
+\item{\code{se_B}}{Standard error for B.}
 
-  \item{\code{se_AB}}{Standard error for AB.}
+\item{\code{se_AB}}{Standard error for AB.}
 
-  \item{\code{p_int}}{P-value for the intercept.}
+\item{\code{p_int}}{P-value for the intercept.}
 
-  \item{\code{p_A}}{P-value for the main effect of A.}
+\item{\code{p_A}}{P-value for the main effect of A.}
 
-  \item{\code{p_B}}{P-value for the main effect of B.}
+\item{\code{p_B}}{P-value for the main effect of B.}
 
-  \item{\code{p_AB}}{P-value for the AB interaction.}
+\item{\code{p_AB}}{P-value for the AB interaction.}
 
-  \item{\code{AIC}}{Akaike Information Criterion for the model.}
+\item{\code{AIC}}{Akaike Information Criterion for the model.}
 
-  \item{\code{resid_df}}{Residual degrees of freedom.}
+\item{\code{resid_df}}{Residual degrees of freedom.}
 
-  \item{\code{resid_dev}}{Residual deviance.}
+\item{\code{resid_dev}}{Residual deviance.}
 }
 }
 \description{
 Fit models to 2x2 data with autocorrelated errors
 }
 \details{
-Fits four models: (1) A Generalized Additive Mixed Model
-  (GAMM) for the blocked DV (\code{Y_b}); (2) A Linear
-  Mixed-Effects Model (LMEM) for the blocked DV (\code{Y_b}); (3) A
-  GAMM for the randomized DV (\code{Y_r}); and (4) A LMEM for the
-  randomized DV (\code{Y_r}).
+Fits four models using \link[mgcv]{bam}:
+
+\describe{
+\item{1}{A Generalized Additive Mixed Model (GAMM) for the blocked DV (\code{Y_b});}
+\item{2}{A Linear Mixed-Effects Model (LMEM) for the blocked DV (\code{Y_b});}
+\item{3}{A GAMM for the randomized DV (\code{Y_r}); and}
+\item{4}{A LMEM for the randomized DV (\code{Y_r}).}
+}
 }

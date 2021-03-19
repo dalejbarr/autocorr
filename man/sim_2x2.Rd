@@ -15,7 +15,8 @@ sim_2x2(
   rslp = 0.5,
   rcorr = 0.5,
   version = 0L,
-  verbose = FALSE
+  verbose = FALSE,
+  extra_args = NULL
 )
 }
 \arguments{
@@ -39,44 +40,42 @@ even integer.}
 
 \item{rcorr}{Random correlation.}
 
-\item{version}{Autocorrelation case number; an integer between 0
-and 8 (see \code{\link{errsim}}).}
+\item{version}{How to generate residuals: either an integer
+representing the Scenario number (see \code{\link{errsim}}) or
+the name of a user-defined function.}
 
-\item{verbose}{Whether the data frame should GLM components.}
+\item{verbose}{Whether the data frame should include GLM
+components.}
+
+\item{extra_args}{A list of extra arguments to be passed to a
+user-defined function to generate residuals.}
 }
 \value{
 A data frame with \code{n_subj * n_obs} rows and either 9
-  or 12 columns depending on whether verbose is TRUE or FALSE
-  respectively.
+or 12 columns depending on whether verbose is TRUE or FALSE
+respectively.
 
 \describe{
-
 \item{\code{subj_id}}{}
-
 \item{\code{A}}{Level of within-subject factor A.}
-
 \item{\code{B}}{Level of between-subject factor B.}
-
 \item{\code{A_c}}{Deviation-coded predictor for A.}
-
 \item{\code{B_c}}{Deviation-coded predictor for B.}
-
 \item{\code{tnum_r}}{Trial number for the fully randomized version.}
-
 \item{\code{tnum_b}}{Trial number for the blocked version.}
-
 \item{\code{Y_r}}{Response variable for the fully randomized version.}
-
 \item{\code{Y_b}}{Response variable for the fully blocked version.}
-
 \item{\code{rint}}{Random intercept effect (verbose mode only.)}
-
 \item{\code{rslp}}{Random slope effect (verbose mode only).}
-
 \item{\code{Y_fit}}{Fitted value (all effects except residual.)}
-
 }
 }
 \description{
 Simulate 2x2 data with autocorrelated errors
+}
+\details{
+When used with a user-defined function to generate
+residuals, the residuals for each subject will be standardized
+(i.e., converted to z-scores) before they are combined with other
+model components.
 }

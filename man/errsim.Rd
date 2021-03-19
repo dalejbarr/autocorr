@@ -8,32 +8,49 @@ errsim(n_obs, version)
 }
 \arguments{
 \item{n_obs}{Number of simulated observations. Must be less than
-275 (length of output from \code{link{stat_gp}} with \code{gamma
-= 1}, \code{sigma = 1}.)}
+275 (length of output from \code{\link[=stat_gp]{stat_gp()}} with \code{gamma = 1}, \code{sigma = 1}.)}
 
 \item{version}{An integer specifying the error autocorrelation
-  case number; one of the following.
+case number; one of the following.
 
 \describe{
-  \item{0}{No autocorrelation (white noise).}
-  \item{1}{Sine wave with fixed amplitude, varying phase, and white noise.}
-  \item{2}{Sine wave with fixed phase, varying amplitude, and white noise.}
+\item{0}{No autocorrelation (white noise).}\preformatted{\\item\{1\}\{Sine wave with fixed amplitude, varying phase, and white noise.\}
 
-  \item{3}{Random walk, high frequency, generated using
-  \code{\link{stat_gp}} with gamma = 1 and sigma = 1.}
+\\item\{2\}\{Sine wave with fixed phase, varying amplitude, and white noise.\}
 
-  \item{4}{Random walk, mid frequency, generated using
-  \code{\link{stat_gp}} with gamma = 2 and sigma = 1.}
+\\item\{3\}\{Random walk, high frequency, generated using
+  [stat_gp()] with gamma = 1 and sigma = 1.\}
+\\item\{4\}\{Random walk, mid frequency, generated using
+  [stat_gp()] with gamma = 2 and sigma = 1.\}
 
-  \item{5}{Multi-scale: combination of 1 and 3.}
-  \item{6}{Multi-scale: combination of 1 and 4.}
-  \item{7}{Multi-scale: combination of 2 and 3.}
-  \item{8}{Multi-scale: combination of 2 and 4.}
+\\item\{5\}\{Multi-scale: combination of 1 and 3.\}
+\\item\{6\}\{Multi-scale: combination of 1 and 4.\}
+\\item\{7\}\{Multi-scale: combination of 2 and 3.\}
+\\item\{8\}\{Multi-scale: combination of 2 and 4.\}
+
+\\item\{9\}\{A wiggly function generated from
+[mgcv::smooth.construct()], no error\}
+
+\\item\{10\}\{A wiggly function generated from
+[mgcv::smooth.construct()], with 10 percent white noise\}
+
+\\item\{11\}\{Analogous to 1, but with a sawtooth pattern instead
+of sine.\}
+
+\\item\{12\}\{Analogous to 2, but with a sawtooth pattern instead
+of sine.\}
+
+\\item\{13\}\{Multi-scale: combination of 11 and 3.\}
+\\item\{14\}\{Multi-scale: combination of 11 and 4.\}
+\\item\{15\}\{Multi-scale: combination of 12 and 3.\}
+\\item\{16\}\{Multi-scale: combination of 12 and 4.\}
+}
+
 }}
 }
 \value{
 A vector of simulated observations guaranteed to have a
-  mean of 0 and a standard deviation of 1.
+mean of 0 and a standard deviation of 1.
 }
 \description{
 Simulate Autocorrelated Errors

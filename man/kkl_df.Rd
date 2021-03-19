@@ -4,12 +4,14 @@
 \name{kkl_df}
 \alias{kkl_df}
 \title{Residuals from the KKL dataset (table format)}
-\format{A data frame with 68800 rows and 3 variables:
+\format{
+A data frame with 68800 rows and 3 variables:
 \describe{
-  \item{subj}{subject identifier}
-  \item{trial}{trial number (1-800)}
-  \item{resid}{the residual}
-}}
+\item{subj}{subject identifier}
+\item{trial}{trial number (1-800)}
+\item{resid}{the residual}
+}
+}
 \source{
 The raw KKL data can be found at \url{https://github.com/dmbates/RePsychLing}
 }
