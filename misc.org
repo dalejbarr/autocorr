@@ -1,0 +1,27 @@
+* practice effects
+
+#+begin_src sh :shebang "#!/bin/bash" :tangle practice.sh
+# TODO
+#+end_src
+
+#+begin_src R :tangle 
+  devtools::load_all()
+  library(tidyverse)
+  library(parallel)
+
+  cl <- makeCluster(6)
+
+  junk <- clusterCall(cl, function() {
+    devtools::load_all("~/repo/autocorr")
+  })
+
+  mx <- parSapply(cl, 1:18,
+		  function(.x) {
+		    simfit_practice_all(between_eff = 0, within_eff = 0)
+		  })
+
+  pvals <- apply(mx[c("G.p.bi", "L.p.bi", "N.p.bi",
+		      "G.p.wij", "L.p.wij", "N.p.wij"), ],
+		    1,
+		    function(.x) {sum(.x < .05, na.rm = TRUE) / sum(!is.na(.x))}) 
+#+end_src
