@@ -744,6 +744,11 @@ fit_2x2 <- function(dat, cs = FALSE, by_subj_fs = TRUE,
 #' @param extra_args Extra args to be passed along to any user-defined
 #'   function for generating residuals.
 #'
+#' @param rand_fn Name of the function to randomize trial order
+#'   (defaults to \code{\link{shuffle}}). This can be a user-supplied
+#'   function; see \code{\link{shuffle}} for details on how this
+#'   function should be constructed.
+#'
 #' @details The behavior of \code{os_always} depends on whether
 #'   \code{version} has been specified as a scenario number, in which
 #'   case it overrides the scenario-dependent selection of an overall
@@ -778,7 +783,8 @@ mcsim <- function(nmc,
                     format(Sys.time(), "%Y-%m-%d-%H-%M-%S"),
                     Sys.info()[["nodename"]],
                     Sys.getpid()),
-                  extra_args = NULL) {
+                  extra_args = NULL,
+                  rand_fn = "shuffle") {
   
   tfile <- tempfile(fileext = ".csv")
                     
@@ -802,7 +808,8 @@ mcsim <- function(nmc,
     dat <- sim_2x2(n_subj = n_subj, n_obs = n_obs,
                    int = 0, A = A, B = B, AB = AB,
                    rint = rint, rslp = rslp, rcorr = rcorr,
-                   version = version, extra_args = extra_args)
+                   version = version, extra_args = extra_args,
+                   rand_fn = rand_fn)
     res <- fit_2x2(dat = dat, cs = cs, m = m, k = k,
                    bam_args = bam_args, fit_blocked = fit_blocked,
                    fit_lmem = fit_lmem)
