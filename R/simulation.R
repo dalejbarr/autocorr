@@ -451,7 +451,13 @@ sim_2x2 <- function(n_subj = 48, n_obs = 48,
     stop("all elements in list returned by user-defined residual function must be of length 'n_obs'")
   }
 
-  tix <- do.call(rand_fn, list(n_subj, n_obs))
+  tix <- if (!exists(rand_fn)) {
+           do.call(getExportedValue("autocorr", rand_fn),
+                   list(n_subj, n_obs))
+         } else {
+           do.call(rand_fn, list(n_subj, n_obs))
+         }
+  
   if (!is.list(tix)) {
     stop("the randomization function must return a list of integers")
   }
