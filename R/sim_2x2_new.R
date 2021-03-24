@@ -72,7 +72,7 @@
 #' }
 #'
 #' @export
-sim_2x2 <- function(n_subj = 48, n_items = 48,
+sim_2x2_crossed <- function(n_subj = 48, n_items = 48,
                     int = 0, A = 0, B = 0, AB = 0,
                     item_rint = .5, item_rslp = .5, item_rcorr = .5,
                     subj_rint = .5, subj_rslp = .5, subj_rcorr = .5,

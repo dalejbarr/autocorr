@@ -27,7 +27,8 @@ mcsim(
     rslp_range[2], if (is.numeric(version)) sprintf("\%02d", version) else version,
     format(Sys.time(), "\%Y-\%m-\%d-\%H-\%M-\%S"), Sys.info()[["nodename"]],
     Sys.getpid()),
-  extra_args = NULL
+  extra_args = NULL,
+  rand_fn = "shuffle"
 )
 }
 \arguments{
@@ -77,6 +78,11 @@ to the randomized version.}
 
 \item{extra_args}{Extra args to be passed along to any user-defined
 function for generating residuals.}
+
+\item{rand_fn}{Name of the function to randomize trial order
+(defaults to \code{\link{shuffle}}). This can be a user-supplied
+function; see \code{\link{shuffle}} for details on how this
+function should be constructed.}
 
 \item{int}{Intercept.}
 }
